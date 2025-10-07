@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 	"sync"
 )
 
@@ -26,9 +27,13 @@ var once sync.Once
 
 func GetConfig() *Config {
 	once.Do(func() {
+		logger := logging.GetLogger()
+		logger.Info("read application config")
 		instance = &Config{}
 		if err := cleanenv.ReadConfig("config.yml", instance); err != nil {
 			help, _ := cleanenv.GetDescription(instance, nil)
+			logger.Info(help)
+			logger.Fatal(err)
 		}
 	})
 	return instance
