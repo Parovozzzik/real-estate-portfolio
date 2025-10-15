@@ -1,0 +1,6 @@
+./.idea
+./logs
+./configs/config.yml
+./build/package/docker/volumes/mysql/.env
+./build/package/docker/volumes/mysql/db
+./build/package/docker/volumes/mysql/mysqld.cnf

@@ -1,0 +1,11 @@
+is_debug:
+listen:
+  type:
+  bind_ip:
+  port:
+mysql:
+  host:
+  port:
+  username:
+  password:
+  database:
