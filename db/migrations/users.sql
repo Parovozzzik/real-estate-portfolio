@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users
+CREATE TABLE IF NOT EXISTS rep_users
 (
     id                 BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of user.',
     email              VARCHAR(64)  NOT NULL COMMENT 'Email address of user.',

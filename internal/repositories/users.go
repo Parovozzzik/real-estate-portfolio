@@ -27,7 +27,10 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (u *UserRepository) CreateUser(registration *models.Registration) (int64, error) {
-    result, err := u.db.Exec("INSERT INTO real_estate_portfolio.users (email, password) VALUES (?, ?)", registration.Email, string(registration.Password))
+    result, err := u.db.Exec(
+        "INSERT INTO real_estate_portfolio.rep_users (email, password) VALUES (?, ?)",
+        registration.Email,
+        string(registration.Password))
     if err != nil {
         return 0, err
     }
@@ -52,7 +55,9 @@ func (u *UserRepository) LoginUser(login *models.Login) (*models.User, error) {
         return nil, err
     }
 
-    userData, err := u.db.Query("SELECT id, email, password FROM real_estate_portfolio.users WHERE email = ?", login.Email)
+    userData, err := u.db.Query(
+        "SELECT id, email, password FROM real_estate_portfolio.rep_users WHERE email = ?",
+        login.Email)
     if err != nil {
         return nil, err
     }
@@ -73,13 +78,14 @@ func (u *UserRepository) LoginUser(login *models.Login) (*models.User, error) {
 	return user, nil
 }
 
-func(u *UserRepository) GetUserByID(id string) (*models.User, error) {
+func(u *UserRepository) GetUserById(id int64) (*models.User, error) {
 	user := models.NewUser(1, "username", "email@email.ru", "password")
     return user, nil
 }
 
 func (u *UserRepository) GetUsers() ([]byte, error) {
-    rows, err := u.db.Query("SELECT id, email, name FROM real_estate_portfolio.users")
+    rows, err := u.db.Query(
+        "SELECT id, email, name FROM real_estate_portfolio.rep_users")
     if err != nil {
         log.Println(err)
     }

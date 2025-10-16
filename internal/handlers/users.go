@@ -104,9 +104,15 @@ func (h *UserHandler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
 
-    jsonData, err := h.userRepository.GetUsers()
+    user, err := h.userRepository.GetUserById(1)
     if err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
+        return
+    }
+
+    jsonData, err := json.Marshal(user)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
         return
     }
 
