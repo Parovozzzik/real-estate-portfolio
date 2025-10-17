@@ -10,15 +10,14 @@ import (
     "github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
 )
 
-func usersRouter() http.Handler {
+func estatesRouter() http.Handler {
     db := database.GetDBInstance()
-    userRepository := repositories.NewUserRepository(db)
-    userHandler := handlers.NewUserHandler(userRepository)
+    estateRepository := repositories.NewEstateRepository(db)
+    estateHandler := handlers.NewEstateHandler(estateRepository)
 
     r := chi.NewRouter()
-    r.Get("/", userHandler.GetUsers)
-    r.Post("/login", userHandler.LoginUser)
-    r.Post("/registration", userHandler.RegistrationUser)
-    r.Get("/{id}/estates", userHandler.GetUserEstates)
+    r.Get("/", estateHandler.GetEstates)
+    r.Post("/", estateHandler.CreateEstate)
+
     return r
 }

@@ -6,6 +6,8 @@ import (
     "fmt"
     "strconv"
 
+    "github.com/go-chi/chi/v5"
+
     "github.com/Parovozzzik/real-estate-portfolio/internal/logging"
     "github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
     "github.com/Parovozzzik/real-estate-portfolio/internal/models"
@@ -113,6 +115,20 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
     jsonData, err := json.Marshal(user)
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+    w.Write(jsonData)
+}
+
+func (h *UserHandler) GetUserEstates(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+
+    id := chi.URLParam(r, "id")
+
+    jsonData, err := h.userRepository.GetUserEstates(id)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusNotFound)
         return
     }
 
