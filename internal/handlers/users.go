@@ -5,16 +5,25 @@ import (
     "net/http"
     "fmt"
     "strconv"
+    "time"
 
     "github.com/go-chi/chi/v5"
+    "github.com/golang-jwt/jwt/v5"
 
+
+    "github.com/Parovozzzik/real-estate-portfolio/internal/config"
     "github.com/Parovozzzik/real-estate-portfolio/internal/logging"
-    "github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
     "github.com/Parovozzzik/real-estate-portfolio/internal/models"
+    "github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
 )
 
 type UserHandler struct {
 	userRepository *repositories.UserRepository
+}
+
+type AuthResponse struct {
+    Token string `json:"token"`
+    User  *models.User `json:"user"`
 }
 
 func NewUserHandler(userRepository *repositories.UserRepository) *UserHandler {
@@ -56,7 +65,26 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    jsonData, err := json.Marshal(user)
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+        "user_id": user.Id,
+        "email":   user.Email,
+        "exp":     time.Now().Add(24 * time.Hour).Unix(),
+        "iat":     time.Now().Unix(),
+    })
+
+    cfg := config.GetConfig()
+    tokenString, err := token.SignedString([]byte(cfg.JwtSecret))
+    if err != nil {
+        http.Error(w, `{"error": "Failed to generate token"}`, http.StatusInternalServerError)
+        return
+    }
+
+    response := AuthResponse{
+        Token: tokenString,
+        User:  user,
+    }
+
+    jsonData, err := json.Marshal(response)
     if err != nil {
         logger.Println(err.Error())
 

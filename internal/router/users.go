@@ -19,6 +19,12 @@ func usersRouter() http.Handler {
     r.Get("/", userHandler.GetUsers)
     r.Post("/login", userHandler.LoginUser)
     r.Post("/registration", userHandler.RegistrationUser)
-    r.Get("/{id}/estates", userHandler.GetUserEstates)
+
+    r.Group(func(r chi.Router) {
+        r.Use(JWTMiddleware)
+
+        r.Get("/{id}/estates", userHandler.GetUserEstates)
+    })
+
     return r
 }

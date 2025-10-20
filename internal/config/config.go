@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+    JwtSecret           string `yaml:"jwt_secret"`
 	IsDebug             *bool `yaml:"is_debug"`
 	Listen  struct {
 		Type            string `yaml:"type" env-default:"port"`

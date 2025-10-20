@@ -1,3 +1,4 @@
+jwt_secret:
 is_debug:
 listen:
   type:
