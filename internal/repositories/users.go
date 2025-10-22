@@ -164,7 +164,11 @@ func (u *UserRepository) GetUsers() ([]byte, error) {
 }
 
 func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
-	query := "SELECT id, name, estate_type_id FROM real_estate_portfolio.rep_estates WHERE user_id = ?"
+	query :=
+		"SELECT re.id, re.name, re.user_id, re.estate_type_id, re.active, ret.name as estate_type_name, ret.icon as estate_type_icon " +
+			"FROM real_estate_portfolio.rep_estates re " +
+			"JOIN real_estate_portfolio.rep_estate_types ret ON ret.id = re.estate_type_id " +
+			"WHERE re.user_id = ?"
 	rows, err := u.db.Query(query, userId)
 	if err != nil {
 		log.Println(err)

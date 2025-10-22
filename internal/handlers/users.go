@@ -234,6 +234,102 @@ func (h *UserHandler) GetUserEstate(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
+func (h *UserHandler) CreateEstate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	logging.Init()
+	logger := logging.GetLogger()
+
+	userId, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	createEstate := &models.CreateEstate{}
+	createEstate.UserId = userId
+	err = json.NewDecoder(r.Body).Decode(createEstate)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	db := database.GetDBInstance()
+	estateRepository := repositories.NewEstateRepository(db)
+
+	newEstateId, err := estateRepository.CreateEstate(createEstate)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+		return
+	}
+
+	estate, err := h.userRepository.GetUserEstate(userId, newEstateId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(estate)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write(jsonData)
+}
+
+func (h *UserHandler) UpdateEstate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	logging.Init()
+	logger := logging.GetLogger()
+
+	userId, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	estateId, err := strconv.ParseInt(chi.URLParam(r, "estate-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	updateEstate := &models.UpdateEstate{}
+	updateEstate.Id = estateId
+	err = json.NewDecoder(r.Body).Decode(updateEstate)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	db := database.GetDBInstance()
+	estateRepository := repositories.NewEstateRepository(db)
+
+	newEstateId, err := estateRepository.UpdateEstate(updateEstate, userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+		return
+	}
+
+	estate, err := h.userRepository.GetUserEstate(userId, newEstateId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(estate)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write(jsonData)
+}
+
 func (h *UserHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -291,11 +387,11 @@ func (h *UserHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // Вспомогательные функции
-func generateAccessToken(userID int64, email string) (string, int64) {
+func generateAccessToken(userId int64, email string) (string, int64) {
 	exp := time.Now().Add(15 * time.Minute).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID,
+		"user_id": userId,
 		"email":   email,
 		"exp":     exp,
 		"iat":     time.Now().Unix(),
@@ -307,7 +403,7 @@ func generateAccessToken(userID int64, email string) (string, int64) {
 	return tokenString, exp
 }
 
-func generateRefreshToken(userID int64) (string, int64) {
+func generateRefreshToken(userId int64) (string, int64) {
 	exp := time.Now().Add(7 * 24 * time.Hour).Unix()
 
 	// Используем UUID для refresh token вместо JWT

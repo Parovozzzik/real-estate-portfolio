@@ -1,14 +1,15 @@
 package router
 
 import (
-    "context"
-    "net/http"
-    "strings"
+	"context"
+	"net/http"
+	"strconv"
+	"strings"
 
-    "github.com/go-chi/chi/v5"
-    "github.com/golang-jwt/jwt/v5"
+	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 
-    "github.com/Parovozzzik/real-estate-portfolio/internal/config"
+	"github.com/Parovozzzik/real-estate-portfolio/internal/config"
 )
 
 var validAPIKeys = map[string]bool{
@@ -35,62 +36,81 @@ func APIKeyAuthMiddleware(next http.Handler) http.Handler {
 }
 
 func JWTMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        authHeader := r.Header.Get("Authorization")
-        if authHeader == "" {
-            http.Error(w, `{"error": "Authorization header required"}`, http.StatusUnauthorized)
-            return
-        }
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, `{"error": "Authorization header required"}`, http.StatusUnauthorized)
+			return
+		}
 
-        // Формат: "Bearer {token}"
-        parts := strings.Split(authHeader, " ")
-        if len(parts) != 2 || parts[0] != "Bearer" {
-            http.Error(w, `{"error": "Authorization format: Bearer {token}"}`, http.StatusUnauthorized)
-            return
-        }
+		// Формат: "Bearer {token}"
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			http.Error(w, `{"error": "Authorization format: Bearer {token}"}`, http.StatusUnauthorized)
+			return
+		}
 
-        tokenString := parts[1]
+		tokenString := parts[1]
 
-        cfg := config.GetConfig()
-        jwtSecret := []byte(cfg.JwtSecret)
+		cfg := config.GetConfig()
+		jwtSecret := []byte(cfg.JwtSecret)
 
-        // Парсим и валидируем токен
-        token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-            // Проверяем алгоритм подписи
-            if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-                return nil, jwt.ErrSignatureInvalid
-            }
-            return jwtSecret, nil
-        })
+		// Парсим и валидируем токен
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// Проверяем алгоритм подписи
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return jwtSecret, nil
+		})
 
-        if err != nil || !token.Valid {
-            http.Error(w, `{"error": "Invalid token"}`, http.StatusUnauthorized)
-            return
-        }
+		if err != nil || !token.Valid {
+			http.Error(w, `{"error": "Invalid token"}`, http.StatusUnauthorized)
+			return
+		}
 
-        // Извлекаем claims и добавляем в контекст
-        if claims, ok := token.Claims.(jwt.MapClaims); ok {
-            userID := claims["user_id"]
-            ctx := context.WithValue(r.Context(), "userID", userID)
-            next.ServeHTTP(w, r.WithContext(ctx))
-        } else {
-            http.Error(w, `{"error": "Invalid token claims"}`, http.StatusUnauthorized)
-        }
-    })
+		// Извлекаем claims и добавляем в контекст
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			userIdFloat := claims["user_id"].(float64)
+			userId := int64(userIdFloat)
+			ctx := context.WithValue(r.Context(), "user_id", userId)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			http.Error(w, `{"error": "Invalid token claims"}`, http.StatusUnauthorized)
+		}
+	})
+}
+
+func UserIdMatchMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenUserId := r.Context().Value("user_id").(int64)
+		urlUserId, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+
+		if tokenUserId != urlUserId {
+			w.Header().Set("Content-Type", "application/json")
+			http.Error(w, `{"error": "Access denied"}`, http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func GetRouter() *chi.Mux {
-    r := chi.NewRouter()
+	r := chi.NewRouter()
 
-    r.Use(APIKeyAuthMiddleware)
+	r.Use(APIKeyAuthMiddleware)
 
-    r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("hi"))
-    })
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hi"))
+	})
 
-    r.Mount("/users", usersRouter())
-    r.Mount("/estate-types", estateTypesRouter())
-    r.Mount("/estates", estatesRouter())
+	r.Mount("/users", usersRouter())
+	r.Mount("/estate-types", estateTypesRouter())
+	r.Mount("/estates", estatesRouter())
 
-    return r
+	return r
 }

@@ -5,16 +5,16 @@ import (
 )
 
 type Estate struct {
-	Id           int       `json:"id"`
-	EstateTypeId int       `json:"estate_type_id"`
+	Id           int64     `json:"id"`
+	EstateTypeId int64     `json:"estate_type_id"`
 	Name         string    `json:"name"`
-	UserId       int       `json:"user_id"`
+	UserId       int64     `json:"user_id"`
 	Active       int       `json:"active"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-func NewEstate(id int, name string, estateTypeId int, userId int, active int) *Estate {
+func NewEstate(id int64, name string, estateTypeId int64, userId int64, active int) *Estate {
 	return &Estate{
 		Id:           id,
 		Name:         name,
@@ -28,17 +28,23 @@ func NewEstate(id int, name string, estateTypeId int, userId int, active int) *E
 
 type CreateEstate struct {
 	Name         string `json:"name", db:"name"`
-	EstateTypeId string `json:"estate_type_id", db:"estate_type_id"`
-	UserId       int    `json:"user_id", db:"user_id"`
+	EstateTypeId int64  `json:"estate_type_id", db:"estate_type_id"`
+	UserId       int64  `json:"user_id", db:"user_id"`
+}
+
+type UpdateEstate struct {
+	Id           int64  `json:"id"`
+	Name         string `json:"name", db:"name"`
+	EstateTypeId int64  `json:"estate_type_id", db:"estate_type_id"`
 }
 
 type FullEstate struct {
-	Id             int       `json:"id"`
-	EstateTypeId   int       `json:"estate_type_id"`
+	Id             int64     `json:"id"`
+	EstateTypeId   int64     `json:"estate_type_id"`
 	EstateTypeName string    `json:"estate_type_name"`
 	EstateTypeIcon string    `json:"estate_type_icon"`
 	Name           string    `json:"name"`
-	UserId         int       `json:"user_id"`
+	UserId         int64     `json:"user_id"`
 	Active         int       `json:"active"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
