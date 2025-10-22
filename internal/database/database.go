@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-    "github.com/Parovozzzik/real-estate-portfolio/internal/config"
+	"github.com/Parovozzzik/real-estate-portfolio/internal/config"
 )
 
 var (
@@ -18,9 +18,9 @@ var (
 
 func GetDBInstance() *sql.DB {
 	once.Do(func() {
-	    cfg := config.GetConfig()
+		cfg := config.GetConfig()
 
-        dsn := cfg.MySql.Username + ":" + cfg.MySql.Password + "@tcp(" + cfg.MySql.Host + ":" + cfg.MySql.Port + ")/" + cfg.MySql.Database;
+		dsn := cfg.MySql.Username + ":" + cfg.MySql.Password + "@tcp(" + cfg.MySql.Host + ":" + cfg.MySql.Port + ")/" + cfg.MySql.Database
 
 		var err error
 		dbInstance, err = sql.Open("mysql", dsn)

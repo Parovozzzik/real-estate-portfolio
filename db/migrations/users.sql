@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS rep_users
     password           VARCHAR(255) NOT NULL COMMENT 'Password.',
 
     name               VARCHAR(64)           DEFAULT NULL COMMENT 'Name/Nickname',
+    phone              VARCHAR(16)           DEFAULT NULL COMMENT 'Phone number',
 
     email_confirm      TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Status of confirmation email.',
     email_confirm_code VARCHAR(64)           DEFAULT NULL COMMENT 'Code for confirmation email.',
