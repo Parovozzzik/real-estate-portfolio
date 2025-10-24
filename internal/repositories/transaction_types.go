@@ -9,17 +9,17 @@ import (
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
 
-type EstateTypeRepository struct {
+type TransactionTypeRepository struct {
 	db *sql.DB
 }
 
-func NewEstateTypeRepository(db *sql.DB) *EstateTypeRepository {
-	return &EstateTypeRepository{db: db}
+func NewTransactionTypeRepository(db *sql.DB) *TransactionTypeRepository {
+	return &TransactionTypeRepository{db: db}
 }
 
-func (u *EstateTypeRepository) GetEstateTypes() ([]byte, error) {
+func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
 	rows, err := u.db.Query(
-		"SELECT id, name, icon FROM real_estate_portfolio.rep_estate_types")
+		"SELECT id, name FROM real_estate_portfolio.rep_transaction_types")
 	if err != nil {
 		log.Println(err)
 	}
@@ -63,12 +63,9 @@ func (u *EstateTypeRepository) GetEstateTypes() ([]byte, error) {
 	return jsonData, nil
 }
 
-func (u *EstateTypeRepository) CreateEstateType(createEstateType *models.CreateEstateType) (int64, error) {
+func (u *TransactionTypeRepository) CreateTransactionType(createTransactionType *models.CreateTransactionType) (int64, error) {
 	result, err := u.db.Exec(
-		"INSERT INTO real_estate_portfolio.rep_estate_types (name, icon, active) VALUES (?, ?, ?)",
-		createEstateType.Name,
-		createEstateType.Icon,
-		1)
+		"INSERT INTO real_estate_portfolio.rep_transaction_types (name) VALUES (?)", createTransactionType.Name)
 	if err != nil {
 		return 0, err
 	}
@@ -81,12 +78,10 @@ func (u *EstateTypeRepository) CreateEstateType(createEstateType *models.CreateE
 	return lastInsertID, nil
 }
 
-func (u *EstateTypeRepository) UpdateEstateType(updateEstateType *models.UpdateEstateType) error {
+func (u *TransactionTypeRepository) UpdateTransactionType(updateTransactionType *models.UpdateTransactionType) error {
 	_, err := u.db.Exec(
-		"UPDATE real_estate_portfolio.rep_estate_types SET name = ?, icon = ?, active = ? WHERE id = ?",
-		updateEstateType.Name,
-		updateEstateType.Icon,
-		1,
-		updateEstateType.Id)
+		"UPDATE real_estate_portfolio.rep_transaction_types SET name = ? WHERE id = ?",
+		updateTransactionType.Name,
+		updateTransactionType.Id)
 	return err
 }

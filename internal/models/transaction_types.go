@@ -4,33 +4,27 @@ import (
 	"time"
 )
 
-type EstateType struct {
+type TransactionType struct {
 	Id        int64     `json:"id"`
 	Name      string    `json:"name"`
-	Icon      string    `json:"icon"`
-	Active    int       `json:"active"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewEstateType(id int64, name string, icon string, active int) *EstateType {
-	return &EstateType{
+func NewTransactionType(id int64, name string) *TransactionType {
+	return &TransactionType{
 		Id:        id,
 		Name:      name,
-		Icon:      icon,
-		Active:    active,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 }
 
-type CreateEstateType struct {
+type CreateTransactionType struct {
 	Name string `json:"name", db:"name"`
-	Icon string `json:"icon", db:"icon"`
 }
 
-type UpdateEstateType struct {
+type UpdateTransactionType struct {
 	Id   int64  `json:"id", db:"id"`
 	Name string `json:"name", db:"name"`
-	Icon string `json:"icon", db:"icon"`
 }

@@ -38,7 +38,13 @@ rep_transaction_types (ипотека, рассрочка, кредит, аре�
 - created_at
 - updated_at
 
-transaction_group_frequencies (месяц, квартал, год, 3 года)
+transaction_frequencies (месяц, квартал, год, 3 года)
+- id
+- name
+- created_at
+- updated_at
+
+transaction_group_repayment_plans (аннуитетная, дифференцированная)
 - id
 - name
 - created_at
@@ -53,6 +59,7 @@ transaction_group_settings
 - third_party_funds
 - interest_rate
 - frequency_id
+- repayment_plan_id (аннуитетная, дифференцированная)
 - date_start
 - payday
 - payday_on_workday
