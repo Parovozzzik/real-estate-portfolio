@@ -112,6 +112,10 @@ func GetRouter() *chi.Mux {
 	r.Mount("/estate-types", estateTypesRouter())
 	r.Mount("/estates", estatesRouter())
 	r.Mount("/transaction-types", transactionTypesRouter())
+	r.Mount("/transaction-repayment-plans", transactionRepaymentPlansRouter())
+	r.Mount("/transaction-frequencies", transactionFrequenciesRouter())
+	r.Mount("/transaction-groups", transactionGroupsRouter())
+	r.Mount("/transactions", transactionsRouter())
 
 	return r
 }

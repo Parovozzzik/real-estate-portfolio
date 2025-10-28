@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Parovozzzik/real-estate-portfolio/internal/logging"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
 
-type TransactionTypeRepository struct {
+type TransactionRepository struct {
 	db *sql.DB
 }
 
-func NewTransactionTypeRepository(db *sql.DB) *TransactionTypeRepository {
-	return &TransactionTypeRepository{db: db}
+func NewTransactionRepository(db *sql.DB) *TransactionRepository {
+	return &TransactionRepository{db: db}
 }
 
-func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
+func (u *TransactionRepository) GetTransactions() ([]byte, error) {
 	rows, err := u.db.Query(
 		"SELECT id, name, direction, regularity FROM real_estate_portfolio.rep_transaction_types")
 	if err != nil {
@@ -63,25 +64,41 @@ func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
 	return jsonData, nil
 }
 
-func (u *TransactionTypeRepository) CreateTransactionType(createTransactionType *models.CreateTransactionType) (int64, error) {
+func (u *TransactionRepository) CreateTransaction(createTransaction *models.CreateTransaction) (int64, error) {
 	result, err := u.db.Exec(
-		"INSERT INTO real_estate_portfolio.rep_transaction_types (name) VALUES (?)", createTransactionType.Name)
+		"INSERT INTO real_estate_portfolio.rep_transactions (group_id, type_id, sum, date, comment) VALUES (?, ?, ?, ?, ?)",
+		createTransaction.GroupId,
+		createTransaction.TypeId,
+		createTransaction.Sum,
+		createTransaction.Date,
+		createTransaction.Comment,
+	)
 	if err != nil {
+		logging.Init()
+		logger := logging.GetLogger()
+		logger.Println(err.Error())
 		return 0, err
 	}
 
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {
+		logging.Init()
+		logger := logging.GetLogger()
+		logger.Println(err.Error())
 		return 0, err
 	}
 
 	return lastInsertID, nil
 }
 
-func (u *TransactionTypeRepository) UpdateTransactionType(updateTransactionType *models.UpdateTransactionType) error {
+func (u *TransactionRepository) UpdateTransaction(updateTransaction *models.UpdateTransaction) error {
 	_, err := u.db.Exec(
-		"UPDATE real_estate_portfolio.rep_transaction_types SET name = ? WHERE id = ?",
-		updateTransactionType.Name,
-		updateTransactionType.Id)
+		"UPDATE real_estate_portfolio.rep_transactions SET group_id = ?, type_id = ?, sum = ?, date = ?, comment = ? WHERE id = ?",
+		updateTransaction.GroupId,
+		updateTransaction.TypeId,
+		updateTransaction.Sum,
+		updateTransaction.Date,
+		updateTransaction.Comment,
+		updateTransaction.Id)
 	return err
 }

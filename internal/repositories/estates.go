@@ -19,7 +19,7 @@ func NewEstateRepository(db *sql.DB) *EstateRepository {
 
 func (u *EstateRepository) GetEstates() ([]byte, error) {
 	rows, err := u.db.Query(
-		"SELECT id, name, estate_type_id, user_id FROM real_estate_portfolio.rep_estates")
+		"SELECT id, name, description, estate_type_id, user_id FROM real_estate_portfolio.rep_estates")
 	if err != nil {
 		log.Println(err)
 	}
@@ -65,8 +65,9 @@ func (u *EstateRepository) GetEstates() ([]byte, error) {
 
 func (u *EstateRepository) CreateEstate(createEstate *models.CreateEstate) (int64, error) {
 	result, err := u.db.Exec(
-		"INSERT INTO real_estate_portfolio.rep_estates (name, estate_type_id, user_id, active) VALUES (?, ?, ?, ?)",
+		"INSERT INTO real_estate_portfolio.rep_estates (name, description, estate_type_id, user_id, active) VALUES (?, ?, ?, ?, ?)",
 		createEstate.Name,
+		createEstate.Description,
 		createEstate.EstateTypeId,
 		createEstate.UserId,
 		1)
@@ -83,8 +84,9 @@ func (u *EstateRepository) CreateEstate(createEstate *models.CreateEstate) (int6
 }
 func (u *EstateRepository) UpdateEstate(updateEstate *models.UpdateEstate, userId int64) (int64, error) {
 	_, err := u.db.Exec(
-		"UPDATE real_estate_portfolio.rep_estates SET name = ?, estate_type_id = ? WHERE user_id = ? AND id = ?",
+		"UPDATE real_estate_portfolio.rep_estates SET name = ?, description = ?, estate_type_id = ? WHERE user_id = ? AND id = ?",
 		updateEstate.Name,
+		updateEstate.Description,
 		updateEstate.EstateTypeId,
 		userId,
 		updateEstate.Id)

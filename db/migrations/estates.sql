@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS rep_estates
     id             BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of estate.',
     estate_type_id BIGINT UNSIGNED NOT NULL COMMENT 'Id of estate type.',
     name           VARCHAR(64)     NOT NULL COMMENT 'Name of estate.',
+    description    VARCHAR(255)             DEFAULT NULL COMMENT 'Description of estate.',
     user_id        BIGINT UNSIGNED NOT NULL COMMENT 'Id of user.',
     active         TINYINT(1)      NOT NULL DEFAULT 0 COMMENT 'Status of deletion estate.',
     created_at     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date of creation estate',

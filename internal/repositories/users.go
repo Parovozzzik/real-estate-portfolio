@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
 
-	"github.com/Parovozzzik/real-estate-portfolio/internal/logging"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
 
@@ -60,11 +60,6 @@ func (u *UserRepository) UpdateUser(updateUser *models.UpdateUser) (int64, error
 	query += " WHERE id = ?"
 	params = append(params, updateUser.Id)
 
-	logging.Init()
-	logger := logging.GetLogger()
-	logger.Println(query)
-	logger.Println(params)
-
 	_, err := u.db.Exec(query, params...)
 	if err != nil {
 		return 0, err
@@ -75,7 +70,7 @@ func (u *UserRepository) UpdateUser(updateUser *models.UpdateUser) (int64, error
 
 func (u *UserRepository) LoginUser(login *models.Login) (*models.User, error) {
 	userData, err := u.db.Query(
-		"SELECT id, email, password FROM real_estate_portfolio.rep_users WHERE email = ?",
+		"SELECT id, name, email, phone, password FROM real_estate_portfolio.rep_users WHERE email = ?",
 		login.Email)
 	if err != nil {
 		return nil, err
@@ -84,7 +79,7 @@ func (u *UserRepository) LoginUser(login *models.Login) (*models.User, error) {
 	user := &models.User{}
 	userData.Next()
 	defer userData.Close()
-	err = userData.Scan(&user.Id, &user.Email, &user.Password)
+	err = userData.Scan(&user.Id, &user.Name, &user.Email, &user.Phone, &user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +95,7 @@ func (u *UserRepository) LoginUser(login *models.Login) (*models.User, error) {
 
 func (u *UserRepository) GetUserById(id int64) (*models.User, error) {
 	userData, err := u.db.Query(
-		"SELECT id, email, name FROM real_estate_portfolio.rep_users WHERE id = ?",
+		"SELECT id, email, name, phone FROM real_estate_portfolio.rep_users WHERE id = ?",
 		id)
 	if err != nil {
 		return nil, err
@@ -109,7 +104,7 @@ func (u *UserRepository) GetUserById(id int64) (*models.User, error) {
 
 	user := &models.User{}
 	userData.Next()
-	err = userData.Scan(&user.Id, &user.Email, &user.Name)
+	err = userData.Scan(&user.Id, &user.Email, &user.Name, &user.Phone)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +114,7 @@ func (u *UserRepository) GetUserById(id int64) (*models.User, error) {
 
 func (u *UserRepository) GetUsers() ([]byte, error) {
 	rows, err := u.db.Query(
-		"SELECT id, email, name FROM real_estate_portfolio.rep_users")
+		"SELECT id, email, name, phone FROM real_estate_portfolio.rep_users")
 	if err != nil {
 		log.Println(err)
 	}
@@ -165,7 +160,7 @@ func (u *UserRepository) GetUsers() ([]byte, error) {
 
 func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
 	query :=
-		"SELECT re.id, re.name, re.user_id, re.estate_type_id, re.active, ret.name as estate_type_name, ret.icon as estate_type_icon " +
+		"SELECT re.id, re.name, re.description, re.user_id, re.estate_type_id, re.active, FLOOR(RAND() * 101) as recoupment, ret.name as estate_type_name, ret.icon as estate_type_icon " +
 			"FROM real_estate_portfolio.rep_estates re " +
 			"JOIN real_estate_portfolio.rep_estate_types ret ON ret.id = re.estate_type_id " +
 			"WHERE re.user_id = ?"
@@ -215,7 +210,7 @@ func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
 
 func (u *UserRepository) GetUserEstate(userId, estateId int64) (*models.FullEstate, error) {
 	query :=
-		"SELECT re.id, re.name, re.user_id, re.estate_type_id, re.active, ret.name as estate_type_name, ret.icon as estate_type_icon " +
+		"SELECT re.id, re.name, re.description, re.user_id, re.estate_type_id, re.active, ret.name as estate_type_name, ret.icon as estate_type_icon " +
 			"FROM real_estate_portfolio.rep_estates re " +
 			"JOIN real_estate_portfolio.rep_estate_types ret ON ret.id = re.estate_type_id " +
 			"WHERE re.user_id = ? AND re.id = ?"
@@ -228,10 +223,12 @@ func (u *UserRepository) GetUserEstate(userId, estateId int64) (*models.FullEsta
 
 	estate := &models.FullEstate{}
 	estateData.Next()
-	err = estateData.Scan(&estate.Id, &estate.Name, &estate.UserId, &estate.EstateTypeId, &estate.Active, &estate.EstateTypeName, &estate.EstateTypeIcon)
+	err = estateData.Scan(&estate.Id, &estate.Name, &estate.Description, &estate.UserId, &estate.EstateTypeId, &estate.Active, &estate.EstateTypeName, &estate.EstateTypeIcon)
 	if err != nil {
 		return nil, err
 	}
+
+	estate.Recoupment = rand.Intn(101)
 
 	return estate, nil
 }

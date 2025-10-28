@@ -130,9 +130,20 @@ func (h *UserHandler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, err := h.userRepository.GetUserById(newUserId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	strNewUserId := strconv.FormatInt(newUserId, 10)
-	fmt.Fprintf(w, `{"id": `+strNewUserId+`}`)
+	w.Write(jsonData)
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -162,9 +173,20 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	strNewUserId := strconv.FormatInt(userId, 10)
-	fmt.Fprintf(w, `{"id": `+strNewUserId+`}`)
+	user, err := h.userRepository.GetUserById(userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
 }
 
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +209,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
 

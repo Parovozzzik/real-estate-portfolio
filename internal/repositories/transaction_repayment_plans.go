@@ -9,17 +9,17 @@ import (
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
 
-type TransactionTypeRepository struct {
+type TransactionRepaymentPlanRepository struct {
 	db *sql.DB
 }
 
-func NewTransactionTypeRepository(db *sql.DB) *TransactionTypeRepository {
-	return &TransactionTypeRepository{db: db}
+func NewTransactionRepaymentPlanRepository(db *sql.DB) *TransactionRepaymentPlanRepository {
+	return &TransactionRepaymentPlanRepository{db: db}
 }
 
-func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
+func (u *TransactionRepaymentPlanRepository) GetTransactionRepaymentPlans() ([]byte, error) {
 	rows, err := u.db.Query(
-		"SELECT id, name, direction, regularity FROM real_estate_portfolio.rep_transaction_types")
+		"SELECT id, name FROM real_estate_portfolio.rep_transaction_repayment_plans")
 	if err != nil {
 		log.Println(err)
 	}
@@ -63,9 +63,9 @@ func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
 	return jsonData, nil
 }
 
-func (u *TransactionTypeRepository) CreateTransactionType(createTransactionType *models.CreateTransactionType) (int64, error) {
+func (u *TransactionRepaymentPlanRepository) CreateTransactionRepaymentPlan(createTransactionRepaymentPlan *models.CreateTransactionRepaymentPlan) (int64, error) {
 	result, err := u.db.Exec(
-		"INSERT INTO real_estate_portfolio.rep_transaction_types (name) VALUES (?)", createTransactionType.Name)
+		"INSERT INTO real_estate_portfolio.rep_transaction_repayment_plans (name) VALUES (?)", createTransactionRepaymentPlan.Name)
 	if err != nil {
 		return 0, err
 	}
@@ -78,10 +78,10 @@ func (u *TransactionTypeRepository) CreateTransactionType(createTransactionType 
 	return lastInsertID, nil
 }
 
-func (u *TransactionTypeRepository) UpdateTransactionType(updateTransactionType *models.UpdateTransactionType) error {
+func (u *TransactionRepaymentPlanRepository) UpdateTransactionRepaymentPlan(updateTransactionRepaymentPlan *models.UpdateTransactionRepaymentPlan) error {
 	_, err := u.db.Exec(
-		"UPDATE real_estate_portfolio.rep_transaction_types SET name = ? WHERE id = ?",
-		updateTransactionType.Name,
-		updateTransactionType.Id)
+		"UPDATE real_estate_portfolio.rep_transaction_repayment_plans SET name = ? WHERE id = ?",
+		updateTransactionRepaymentPlan.Name,
+		updateTransactionRepaymentPlan.Id)
 	return err
 }
