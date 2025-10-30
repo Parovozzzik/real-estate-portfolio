@@ -28,6 +28,7 @@ func usersRouter() http.Handler {
 		r.Get("/{user-id}", userHandler.GetUserById)
 		r.Put("/{user-id}/profile", userHandler.UpdateUser)
 		r.Get("/{user-id}/estates", userHandler.GetUserEstates)
+		r.Get("/{user-id}/transactions", userHandler.GetUserTransactions)
 		r.Get("/{user-id}/estates/{estate-id}", userHandler.GetUserEstate)
 		r.Post("/{user-id}/estates", userHandler.CreateEstate)
 		r.Put("/{user-id}/estates/{estate-id}", userHandler.UpdateEstate)

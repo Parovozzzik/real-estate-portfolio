@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS rep_transaction_group_settings
     updated_at        TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Date of updating transaction group setting',
 
     PRIMARY KEY (id),
-    CONSTRAINT rep_transaction_group_settings_email_uk UNIQUE (name),
     CONSTRAINT rep_transaction_groups_settings_frequency_id_fk FOREIGN KEY (frequency_id) REFERENCES real_estate_portfolio.rep_transaction_frequencies (id),
     CONSTRAINT rep_transaction_groups_settings_repayment_plan_id_fk FOREIGN KEY (repayment_plan_id) REFERENCES real_estate_portfolio.rep_transaction_repayment_plans (id)
 ) ENGINE = INNODB

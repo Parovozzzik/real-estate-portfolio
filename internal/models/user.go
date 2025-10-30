@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// User represents a user in the system.
 type User struct {
 	Id        int64     `json:"id"`
 	Name      *string   `json:"name"`

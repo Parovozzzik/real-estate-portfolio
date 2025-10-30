@@ -208,6 +208,64 @@ func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
 	return jsonData, nil
 }
 
+func (u *UserRepository) GetUserTransactions(userId int64) ([]byte, error) {
+	query :=
+		"SELECT rt.id as transaction_id, rtg.id as transaction_group_id, " +
+			"re.id as estate_id, re.name as estate_name, " +
+			"ret.id as estate_type_id, ret.name as estate_type_name, " +
+			"rtt.id as transaction_type_id, rtt.name as transaction_type_name, rtt.direction as transaction_type_direction, rtt.regularity as transaction_type_regularity, " +
+			"rt.sum, rt.date, rt.comment " +
+			"FROM real_estate_portfolio.rep_estates re " +
+			"JOIN real_estate_portfolio.rep_estate_types ret ON ret.id = re.estate_type_id " +
+			"JOIN real_estate_portfolio.rep_transaction_groups rtg ON rtg.estate_id = re.id " +
+			"JOIN real_estate_portfolio.rep_transactions rt ON rt.group_id = rtg.id " +
+			"JOIN real_estate_portfolio.rep_transaction_types rtt ON rtt.id = rt.type_id " +
+			"WHERE re.user_id = ? " +
+			"ORDER BY rt.date"
+	rows, err := u.db.Query(query, userId)
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println("Error...")
+	}
+	columns, err := rows.Columns()
+	if err != nil {
+		fmt.Println("Error...")
+	}
+	count := len(columns)
+	tableData := make([]map[string]interface{}, 0)
+	values := make([]interface{}, count)
+	valuePtrs := make([]interface{}, count)
+	for rows.Next() {
+		for i := 0; i < count; i++ {
+			valuePtrs[i] = &values[i]
+		}
+		rows.Scan(valuePtrs...)
+		entry := make(map[string]interface{})
+		for i, col := range columns {
+			var v interface{}
+			val := values[i]
+			b, ok := val.([]byte)
+			if ok {
+				v = string(b)
+			} else {
+				v = val
+			}
+			entry[col] = v
+		}
+		tableData = append(tableData, entry)
+	}
+	jsonData, err := json.Marshal(tableData)
+	if err != nil {
+		fmt.Println("Error...")
+	}
+
+	return jsonData, nil
+}
+
 func (u *UserRepository) GetUserEstate(userId, estateId int64) (*models.FullEstate, error) {
 	query :=
 		"SELECT re.id, re.name, re.description, re.user_id, re.estate_type_id, re.active, ret.name as estate_type_name, ret.icon as estate_type_icon " +

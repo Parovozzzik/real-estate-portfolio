@@ -229,6 +229,22 @@ func (h *UserHandler) GetUserEstates(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
+func (h *UserHandler) GetUserTransactions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userId, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	jsonData, err := h.userRepository.GetUserTransactions(userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Write(jsonData)
+}
+
 func (h *UserHandler) GetUserEstate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

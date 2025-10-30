@@ -20,6 +20,7 @@ func transactionsRouter() http.Handler {
 	transactionTypeRepository := repositories.NewTransactionTypeRepository(db)
 	transactionFrequencyRepository := repositories.NewTransactionFrequencyRepository(db)
 	transactionRepaymentPlanRepository := repositories.NewTransactionRepaymentPlanRepository(db)
+	transactionGroupSettingRepository := repositories.NewTransactionGroupSettingRepository(db)
 
 	transactionService := services.NewTransactionService(
 		transactionRepository,
@@ -27,6 +28,7 @@ func transactionsRouter() http.Handler {
 		transactionTypeRepository,
 		transactionFrequencyRepository,
 		transactionRepaymentPlanRepository,
+		transactionGroupSettingRepository,
 	)
 
 	r := chi.NewRouter()

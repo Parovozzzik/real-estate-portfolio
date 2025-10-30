@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
@@ -49,7 +50,11 @@ func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
 			if ok {
 				v = string(b)
 			} else {
-				v = val
+				if col == "regularity" || col == "direction" {
+					v = val.(int64) != 0
+				} else {
+					v = val
+				}
 			}
 			entry[col] = v
 		}
@@ -65,7 +70,10 @@ func (u *TransactionTypeRepository) GetTransactionTypes() ([]byte, error) {
 
 func (u *TransactionTypeRepository) CreateTransactionType(createTransactionType *models.CreateTransactionType) (int64, error) {
 	result, err := u.db.Exec(
-		"INSERT INTO real_estate_portfolio.rep_transaction_types (name) VALUES (?)", createTransactionType.Name)
+		"INSERT INTO real_estate_portfolio.rep_transaction_types (name, direction, regularity) VALUES (?, ?, ?)",
+		createTransactionType.Name,
+		createTransactionType.Direction,
+		createTransactionType.Regularity)
 	if err != nil {
 		return 0, err
 	}
@@ -79,9 +87,23 @@ func (u *TransactionTypeRepository) CreateTransactionType(createTransactionType 
 }
 
 func (u *TransactionTypeRepository) UpdateTransactionType(updateTransactionType *models.UpdateTransactionType) error {
-	_, err := u.db.Exec(
-		"UPDATE real_estate_portfolio.rep_transaction_types SET name = ? WHERE id = ?",
-		updateTransactionType.Name,
-		updateTransactionType.Id)
+	params := []any{}
+	query := "UPDATE real_estate_portfolio.rep_transaction_types SET name = ?, "
+	params = append(params, updateTransactionType.Name)
+
+	if updateTransactionType.Direction != nil {
+		query += "direction = ?, "
+		params = append(params, updateTransactionType.Direction)
+	}
+	if updateTransactionType.Regularity != nil {
+		query += "regularity = ?, "
+		params = append(params, updateTransactionType.Regularity)
+	}
+	query = strings.Trim(query, ", ")
+	query += " WHERE id = ?"
+	params = append(params, updateTransactionType.Id)
+
+	_, err := u.db.Exec(query, params...)
+
 	return err
 }

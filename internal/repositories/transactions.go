@@ -20,7 +20,7 @@ func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 
 func (u *TransactionRepository) GetTransactions() ([]byte, error) {
 	rows, err := u.db.Query(
-		"SELECT id, name, direction, regularity FROM real_estate_portfolio.rep_transaction_types")
+		"SELECT id, sum, date FROM real_estate_portfolio.rep_transaction")
 	if err != nil {
 		log.Println(err)
 	}
