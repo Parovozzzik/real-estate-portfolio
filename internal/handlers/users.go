@@ -236,7 +236,41 @@ func (h *UserHandler) GetUserTransactions(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		panic(err)
 	}
-	jsonData, err := h.userRepository.GetUserTransactions(userId)
+
+	filterTransactions := &models.FilterTransactions{}
+	err = json.NewDecoder(r.Body).Decode(&filterTransactions)
+	if err != nil {
+		return
+	}
+
+	jsonData, err := h.userRepository.GetUserTransactions(userId, nil, filterTransactions)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Write(jsonData)
+}
+
+func (h *UserHandler) GetUserEstateTransactions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userId, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	estateId, err := strconv.ParseInt(chi.URLParam(r, "estate-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	filterTransactions := &models.FilterTransactions{}
+	err = json.NewDecoder(r.Body).Decode(&filterTransactions)
+	if err != nil {
+		return
+	}
+
+	jsonData, err := h.userRepository.GetUserTransactions(userId, &estateId, filterTransactions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

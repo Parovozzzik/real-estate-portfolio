@@ -208,7 +208,9 @@ func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
 	return jsonData, nil
 }
 
-func (u *UserRepository) GetUserTransactions(userId int64) ([]byte, error) {
+func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filterTransactions *models.FilterTransactions) ([]byte, error) {
+	params := []any{}
+	params = append(params, userId)
 	query :=
 		"SELECT rt.id as transaction_id, rtg.id as transaction_group_id, " +
 			"re.id as estate_id, re.name as estate_name, " +
@@ -220,9 +222,47 @@ func (u *UserRepository) GetUserTransactions(userId int64) ([]byte, error) {
 			"JOIN real_estate_portfolio.rep_transaction_groups rtg ON rtg.estate_id = re.id " +
 			"JOIN real_estate_portfolio.rep_transactions rt ON rt.group_id = rtg.id " +
 			"JOIN real_estate_portfolio.rep_transaction_types rtt ON rtt.id = rt.type_id " +
-			"WHERE re.user_id = ? " +
-			"ORDER BY rt.date"
-	rows, err := u.db.Query(query, userId)
+			"WHERE re.user_id = ? "
+	if estateId != nil || (filterTransactions != nil && filterTransactions.EstateId != nil) {
+		query += "AND re.id = ? "
+		params = append(params, estateId)
+	}
+	if filterTransactions != nil && filterTransactions.EstateTypeId != nil {
+		query += "AND re.estate_type_id = ? "
+		params = append(params, filterTransactions.EstateTypeId)
+	}
+	if filterTransactions != nil && filterTransactions.TransactionTypeId != nil {
+		query += "AND rt.type_id = ? "
+		params = append(params, filterTransactions.TransactionTypeId)
+	}
+	if filterTransactions != nil && filterTransactions.TransactionGroupId != nil {
+		query += "AND rt.group_id = ? "
+		params = append(params, filterTransactions.TransactionGroupId)
+	}
+	if filterTransactions != nil && filterTransactions.TransactionGroupId != nil {
+		query += "AND rt.group_id = ? "
+		params = append(params, filterTransactions.TransactionGroupId)
+	}
+	if filterTransactions != nil && filterTransactions.TransactionTypeDirection != nil {
+		query += "AND rtt.direction = ? "
+		params = append(params, filterTransactions.TransactionTypeDirection)
+	}
+	if filterTransactions != nil && filterTransactions.TransactionTypeRegularity != nil {
+		query += "AND rtt.regularity = ? "
+		params = append(params, filterTransactions.TransactionTypeRegularity)
+	}
+	query += "ORDER BY rt.date "
+	if filterTransactions != nil && filterTransactions.Limit != nil {
+		query += "LIMIT ? "
+		params = append(params, filterTransactions.Limit)
+
+		if filterTransactions.Offset != nil {
+			query += "OFFSET ?"
+			params = append(params, filterTransactions.Offset)
+		}
+	}
+
+	rows, err := u.db.Query(query, params...)
 	if err != nil {
 		log.Println(err)
 	}
@@ -252,7 +292,11 @@ func (u *UserRepository) GetUserTransactions(userId int64) ([]byte, error) {
 			if ok {
 				v = string(b)
 			} else {
-				v = val
+				if col == "transaction_type_regularity" || col == "transaction_type_direction" {
+					v = val.(int64) != 0
+				} else {
+					v = val
+				}
 			}
 			entry[col] = v
 		}

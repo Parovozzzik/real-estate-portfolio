@@ -6,6 +6,7 @@ import (
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/utils"
+	"math"
 	"net/http"
 	"time"
 )
@@ -176,12 +177,8 @@ func (s *TransactionService) RegularIncome(createTransactionGroupSettings *Creat
 	newTransactionGroupSetting := &models.CreateTransactionGroupSetting{}
 	newTransactionGroupSetting.Name = createTransactionGroupSettings.Name
 	newTransactionGroupSetting.Cost = createTransactionGroupSettings.Cost
-	//newTransactionGroupSetting.DownPayment = createTransactionGroupSettings.DownPayment
-	//newTransactionGroupSetting.OwnFunds = createTransactionGroupSettings.OwnFunds
-	//newTransactionGroupSetting.ThirdPartyFunds = createTransactionGroupSettings.ThirdPartyFunds
-	//newTransactionGroupSetting.InterestRate = createTransactionGroupSettings.InterestRate
+	newTransactionGroupSetting.InterestRate = createTransactionGroupSettings.InterestRate
 	newTransactionGroupSetting.FrequencyId = createTransactionGroupSettings.FrequencyId
-	//newTransactionGroupSetting.RepaymentPlanId = createTransactionGroupSettings.RepaymentPlanId
 	newTransactionGroupSetting.DateStart = time.Time(createTransactionGroupSettings.DateStart)
 	newTransactionGroupSetting.LoanTerm = createTransactionGroupSettings.LoanTerm
 	newTransactionGroupSetting.Payday = createTransactionGroupSettings.Payday
@@ -212,13 +209,8 @@ func (s *TransactionService) RegularIncome(createTransactionGroupSettings *Creat
 		newTransactionGroupSetting.DateStart,
 		newTransactionGroupSetting.LoanTerm,
 		newTransactionGroupSetting.FrequencyId)
-	logging.Init()
-	logger := logging.GetLogger()
 
 	for _, date := range dates {
-
-		logger.Println(date)
-
 		newTransaction := &models.CreateTransaction{}
 		newTransaction.GroupId = newTransactionGroupId
 		newTransaction.Sum = createTransactionGroupSettings.Cost
@@ -239,7 +231,62 @@ func (s *TransactionService) RegularIncome(createTransactionGroupSettings *Creat
 }
 
 func (s *TransactionService) RegularExpense(createTransactionGroupSettings *CreateFullTransactionGroup) *CreateFullTransactionGroup {
-	return &CreateFullTransactionGroup{}
+	principal := createTransactionGroupSettings.Cost
+	annualInterestRate := createTransactionGroupSettings.InterestRate
+	loanTermMonths := createTransactionGroupSettings.LoanTerm
+
+	monthlyPayment, _ := calculateLoan(principal, annualInterestRate, loanTermMonths)
+
+	newTransactionGroupSetting := &models.CreateTransactionGroupSetting{}
+	newTransactionGroupSetting.Name = createTransactionGroupSettings.Name
+	newTransactionGroupSetting.Cost = createTransactionGroupSettings.Cost
+	newTransactionGroupSetting.FrequencyId = createTransactionGroupSettings.FrequencyId
+	newTransactionGroupSetting.DateStart = time.Time(createTransactionGroupSettings.DateStart)
+	newTransactionGroupSetting.LoanTerm = createTransactionGroupSettings.LoanTerm
+	newTransactionGroupSetting.Payday = createTransactionGroupSettings.Payday
+	newTransactionGroupSetting.PaydayOnWorkday = createTransactionGroupSettings.PaydayOnWorkday
+	newTransactionGroupSettingsId, err := s.transactionGroupSettingRepository.CreateTransactionGroupSetting(newTransactionGroupSetting)
+	if err != nil {
+		return nil
+	}
+
+	newTransactionGroup := &models.CreateTransactionGroup{}
+	newTransactionGroup.EstateId = createTransactionGroupSettings.EstateId
+	newTransactionGroup.SettingId = &newTransactionGroupSettingsId
+	newTransactionGroup.Direction = createTransactionGroupSettings.Direction
+	newTransactionGroup.Regularity = createTransactionGroupSettings.Regularity
+
+	newTransactionGroupId, err := s.transactionGroupRepository.CreateTransactionGroup(newTransactionGroup)
+	if err != nil {
+		logging.Init()
+		logger := logging.GetLogger()
+		logger.Println(err.Error())
+		return nil
+	}
+
+	dates := s.GetPaymentDates(
+		newTransactionGroupSetting.DateStart,
+		newTransactionGroupSetting.LoanTerm,
+		newTransactionGroupSetting.FrequencyId)
+
+	for _, date := range dates {
+		newTransaction := &models.CreateTransaction{}
+		newTransaction.GroupId = newTransactionGroupId
+		newTransaction.Sum = monthlyPayment
+		newTransaction.Date = date
+		newTransaction.TypeId = createTransactionGroupSettings.TypeId
+		newTransaction.Comment = createTransactionGroupSettings.Comment
+
+		_, err = s.transactionRepository.CreateTransaction(newTransaction)
+		if err != nil {
+			logging.Init()
+			logger := logging.GetLogger()
+			logger.Println(err.Error())
+			return nil
+		}
+	}
+
+	return createTransactionGroupSettings
 }
 
 func (s *TransactionService) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
@@ -260,4 +307,17 @@ func (s *TransactionService) GetPaymentDates(dateStart time.Time, loanTerm int, 
 	logger.Println(dates)
 
 	return dates
+}
+
+func calculateLoan(principal float64, annualInterestRate float64, loanTermMonths int) (monthlyPayment float64, totalInterest float64) {
+	monthlyInterestRate := annualInterestRate / 100 / 12
+
+	// P = S * [r* (1+r)^n] / [(1+r)^n – 1]
+	power := math.Pow(1+monthlyInterestRate, float64(loanTermMonths))
+	monthlyPayment = principal * (monthlyInterestRate * power) / (power - 1)
+
+	// Переплата = (Ежемесячный платеж * срок) - Сумма кредита
+	totalRepayment := monthlyPayment*float64(loanTermMonths) - principal
+
+	return monthlyPayment, totalRepayment
 }
