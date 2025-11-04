@@ -238,9 +238,12 @@ func (h *UserHandler) GetUserTransactions(w http.ResponseWriter, r *http.Request
 	}
 
 	filterTransactions := &models.FilterTransactions{}
-	err = json.NewDecoder(r.Body).Decode(&filterTransactions)
-	if err != nil {
-		return
+	if r.Body != http.NoBody {
+		err = json.NewDecoder(r.Body).Decode(&filterTransactions)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	jsonData, err := h.userRepository.GetUserTransactions(userId, nil, filterTransactions)
@@ -265,9 +268,12 @@ func (h *UserHandler) GetUserEstateTransactions(w http.ResponseWriter, r *http.R
 	}
 
 	filterTransactions := &models.FilterTransactions{}
-	err = json.NewDecoder(r.Body).Decode(&filterTransactions)
-	if err != nil {
-		return
+	if r.Body != http.NoBody {
+		err = json.NewDecoder(r.Body).Decode(&filterTransactions)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	jsonData, err := h.userRepository.GetUserTransactions(userId, &estateId, filterTransactions)

@@ -32,7 +32,7 @@ func usersRouter() http.Handler {
 		r.Get("/{user-id}/estates/{estate-id}", userHandler.GetUserEstate)
 		r.Post("/{user-id}/estates", userHandler.CreateEstate)
 		r.Put("/{user-id}/estates/{estate-id}", userHandler.UpdateEstate)
-		r.Get("/{user-id}/estates/{estate-id}/transactions", userHandler.GetUserEstateTransactions)
+		r.Post("/{user-id}/estates/{estate-id}/transactions/filter", userHandler.GetUserEstateTransactions)
 	})
 
 	return r
