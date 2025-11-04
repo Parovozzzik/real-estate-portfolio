@@ -8,5 +8,5 @@ FROM alpine:latest
 WORKDIR /
 COPY --from=builder /real-estate-portfolio .
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
-EXPOSE 8080
+EXPOSE 8085
 CMD ["./real-estate-portfolio"]

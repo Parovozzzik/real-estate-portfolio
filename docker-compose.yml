@@ -7,7 +7,7 @@ services:
       - './build/package/docker/volumes/mysql/db:/var/lib/mysql'
       - './build/package/docker/volumes/mysql/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf'
     ports:
-      - 3308:3306
+      - "${DB_PORT}:${DB_PORT}"
     env_file:
       - './build/package/docker/volumes/mysql/.env'
     networks:
@@ -26,7 +26,7 @@ services:
       - './configs/config.yml:/configs/config.yml'
       - './db/migrations:/migrations'
     ports:
-      - 8080:8080
+      - 8085:8085
     networks:
       - real-estate-portfolio-network
 
