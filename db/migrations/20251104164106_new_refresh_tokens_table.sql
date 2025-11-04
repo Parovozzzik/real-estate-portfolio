@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS rep_user_refresh_tokens
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_user_refresh_tokens
 (
     id             BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of refresh token.',
     token          VARCHAR(64)     NOT NULL COMMENT 'Token.',
@@ -9,5 +11,11 @@ CREATE TABLE IF NOT EXISTS rep_user_refresh_tokens
 
     PRIMARY KEY (id),
     CONSTRAINT rep_refresh_tokens_token_uk UNIQUE (token)
-) ENGINE = INNODB
-  DEFAULT CHARSET = utf8 COMMENT 'Refresh tokens';
+    ) ENGINE = INNODB
+    DEFAULT CHARSET = utf8 COMMENT 'Refresh tokens';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS real_estate_portfolio.rep_users;
+-- +goose StatementEnd

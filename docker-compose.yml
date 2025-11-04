@@ -18,8 +18,13 @@ services:
     restart: always
     build:
       context: .
+    environment:
+      GOOSE_DRIVER: "${DB_DRIVER}"
+      GOOSE_DBSTRING: "${DB_URI}"
+      GOOSE_MIGRATION_DIR: "/migrations"
     volumes:
       - './configs/config.yml:/configs/config.yml'
+      - './db/migrations:/migrations'
     ports:
       - 8080:8080
     networks:

@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS rep_transaction_frequencies
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_transaction_frequencies
 (
     id         BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of transaction frequency.',
     name       VARCHAR(64) NOT NULL COMMENT 'Name of transaction frequency.',
@@ -7,5 +9,11 @@ CREATE TABLE IF NOT EXISTS rep_transaction_frequencies
 
     PRIMARY KEY (id),
     CONSTRAINT rep_transaction_frequencies_name_uk UNIQUE (name)
-) ENGINE = INNODB
-  DEFAULT CHARSET = utf8 COMMENT 'Transaction frequencies';
+    ) ENGINE = INNODB
+    DEFAULT CHARSET = utf8 COMMENT 'Transaction frequencies';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS real_estate_portfolio.rep_transaction_frequencies;
+-- +goose StatementEnd

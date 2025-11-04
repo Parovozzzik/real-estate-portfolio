@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS rep_transaction_types
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_transaction_types
 (
     id         BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of transaction type.',
     name       VARCHAR(64) NOT NULL COMMENT 'Name of transaction type.',
@@ -9,5 +11,11 @@ CREATE TABLE IF NOT EXISTS rep_transaction_types
 
     PRIMARY KEY (id),
     CONSTRAINT rep_transaction_types_name_direction_regularity_uk UNIQUE (name, direction, regularity)
-) ENGINE = INNODB
-  DEFAULT CHARSET = utf8 COMMENT 'Transaction types';
+    ) ENGINE = INNODB
+    DEFAULT CHARSET = utf8 COMMENT 'Transaction types';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS real_estate_portfolio.rep_transaction_types;
+-- +goose StatementEnd

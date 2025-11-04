@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS rep_estates
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_estates
 (
     id             BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of estate.',
     estate_type_id BIGINT UNSIGNED NOT NULL COMMENT 'Id of estate type.',
@@ -13,5 +15,11 @@ CREATE TABLE IF NOT EXISTS rep_estates
     CONSTRAINT rep_estate_types_estate_type_id_name_uk UNIQUE (estate_type_id, name),
     CONSTRAINT rep_estate_types_estate_type_id_name_fk FOREIGN KEY (estate_type_id) REFERENCES real_estate_portfolio.rep_estate_types (id),
     CONSTRAINT rep_estate_types_user_id_name_fk FOREIGN KEY (user_id) REFERENCES real_estate_portfolio.rep_users (id)
-) ENGINE = INNODB
-  DEFAULT CHARSET = utf8 COMMENT 'Estate types';
+    ) ENGINE = INNODB
+    DEFAULT CHARSET = utf8 COMMENT 'Estates';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS real_estate_portfolio.rep_estates;
+-- +goose StatementEnd

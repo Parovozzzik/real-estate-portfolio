@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS rep_transaction_groups
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_transaction_groups
 (
     id         BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of transaction group setting.',
     estate_id  BIGINT UNSIGNED NOT NULL COMMENT 'Name of transaction group setting.',
@@ -11,5 +13,10 @@ CREATE TABLE IF NOT EXISTS rep_transaction_groups
     PRIMARY KEY (id),
     CONSTRAINT rep_transaction_groups_estate_id_name_fk FOREIGN KEY (estate_id) REFERENCES real_estate_portfolio.rep_estates (id),
     CONSTRAINT rep_transaction_groups_setting_id_name_fk FOREIGN KEY (setting_id) REFERENCES real_estate_portfolio.rep_transaction_group_settings (id)
-) ENGINE = INNODB
-  DEFAULT CHARSET = utf8 COMMENT 'Transaction groups';
+    ) ENGINE = INNODB DEFAULT CHARSET = utf8 COMMENT 'Transaction groups';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS real_estate_portfolio.rep_transaction_groups;
+-- +goose StatementEnd

@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS rep_users
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_users
 (
     id                 BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'Id of user.',
     email              VARCHAR(64)  NOT NULL COMMENT 'Email address of user.',
@@ -17,5 +19,11 @@ CREATE TABLE IF NOT EXISTS rep_users
 
     PRIMARY KEY (id),
     CONSTRAINT rep_users_email_uk UNIQUE (email)
-) ENGINE = INNODB
-  DEFAULT CHARSET = utf8 COMMENT 'Users';
+    ) ENGINE = INNODB
+    DEFAULT CHARSET = utf8 COMMENT 'Users';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS real_estate_portfolio.rep_users;
+-- +goose StatementEnd
