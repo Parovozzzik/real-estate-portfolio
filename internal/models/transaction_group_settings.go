@@ -28,7 +28,7 @@ type CreateTransactionGroupSetting struct {
 	DownPayment     float64   `json:"down_payment", db:"down_payment"`
 	OwnFunds        float64   `json:"own_funds", db:"own_funds"`
 	ThirdPartyFunds float64   `json:"third_party_funds", db:"third_party_funds"`
-	InterestRate    float64   `json:"interest_rate", db:"interest_rate"`
+	InterestRate    *float64  `json:"interest_rate", db:"interest_rate"`
 	FrequencyId     int64     `json:"frequency_id", db:"frequency_id"`
 	RepaymentPlanId *int64    `json:"repayment_plan_id", db:"repayment_plan_id"`
 	DateStart       time.Time `json:"date_start", db:"date_start"`

@@ -46,12 +46,14 @@ type UpdateTransaction struct {
 }
 
 type FilterTransactions struct {
-	EstateId                  *int64 `json:"estate_id"`
-	EstateTypeId              *int64 `json:"estate_type_id"`
-	TransactionTypeId         *int64 `json:"transaction_type_id"`
-	TransactionGroupId        *int64 `json:"transaction_group_id"`
-	TransactionTypeDirection  *bool  `json:"transaction_type_direction"`
-	TransactionTypeRegularity *bool  `json:"transaction_type_regularity"`
-	Limit                     *int   `json:"limit"`
-	Offset                    *int64 `json:"offset"`
+	EstateId                  *int64  `json:"estate_id"`
+	EstateTypeId              *int64  `json:"estate_type_id"`
+	TransactionTypeId         *int64  `json:"transaction_type_id"`
+	TransactionGroupId        *int64  `json:"transaction_group_id"`
+	TransactionTypeDirection  *bool   `json:"transaction_type_direction"`
+	TransactionTypeRegularity *bool   `json:"transaction_type_regularity"`
+	Limit                     *int    `json:"limit"`
+	Offset                    *int64  `json:"offset"`
+	StartDate                 *string `json:"start_date"`
+	EndDate                   *string `json:"end_date"`
 }

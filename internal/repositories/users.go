@@ -207,7 +207,6 @@ func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
 
 	return jsonData, nil
 }
-
 func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filterTransactions *models.FilterTransactions) ([]byte, error) {
 	params := []any{}
 	params = append(params, userId)
@@ -227,34 +226,48 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 		query += "AND re.id = ? "
 		params = append(params, estateId)
 	}
-	if filterTransactions != nil && filterTransactions.EstateTypeId != nil {
-		query += "AND re.estate_type_id = ? "
-		params = append(params, filterTransactions.EstateTypeId)
+	if filterTransactions != nil {
+		if filterTransactions.EstateTypeId != nil {
+			query += "AND re.estate_type_id = ? "
+			params = append(params, filterTransactions.EstateTypeId)
+		}
+		if filterTransactions.TransactionTypeId != nil {
+			query += "AND rt.type_id = ? "
+			params = append(params, filterTransactions.TransactionTypeId)
+		}
+		if filterTransactions.TransactionGroupId != nil {
+			query += "AND rt.group_id = ? "
+			params = append(params, filterTransactions.TransactionGroupId)
+		}
+		if filterTransactions.TransactionGroupId != nil {
+			query += "AND rt.group_id = ? "
+			params = append(params, filterTransactions.TransactionGroupId)
+		}
+		if filterTransactions.TransactionTypeDirection != nil {
+			query += "AND rtt.direction = ? "
+			params = append(params, filterTransactions.TransactionTypeDirection)
+		}
+		if filterTransactions.TransactionTypeRegularity != nil {
+			query += "AND rtt.regularity = ? "
+			params = append(params, filterTransactions.TransactionTypeRegularity)
+		}
+		if filterTransactions.StartDate != nil {
+			query += "AND rt.date >= ? "
+			params = append(params, filterTransactions.StartDate)
+		}
+		if filterTransactions.EndDate != nil {
+			query += "AND rt.date <= ? "
+			params = append(params, filterTransactions.EndDate)
+		}
 	}
-	if filterTransactions != nil && filterTransactions.TransactionTypeId != nil {
-		query += "AND rt.type_id = ? "
-		params = append(params, filterTransactions.TransactionTypeId)
-	}
-	if filterTransactions != nil && filterTransactions.TransactionGroupId != nil {
-		query += "AND rt.group_id = ? "
-		params = append(params, filterTransactions.TransactionGroupId)
-	}
-	if filterTransactions != nil && filterTransactions.TransactionGroupId != nil {
-		query += "AND rt.group_id = ? "
-		params = append(params, filterTransactions.TransactionGroupId)
-	}
-	if filterTransactions != nil && filterTransactions.TransactionTypeDirection != nil {
-		query += "AND rtt.direction = ? "
-		params = append(params, filterTransactions.TransactionTypeDirection)
-	}
-	if filterTransactions != nil && filterTransactions.TransactionTypeRegularity != nil {
-		query += "AND rtt.regularity = ? "
-		params = append(params, filterTransactions.TransactionTypeRegularity)
-	}
+
 	query += "ORDER BY rt.date "
-	if filterTransactions != nil && filterTransactions.Limit != nil {
-		query += "LIMIT ? "
-		params = append(params, filterTransactions.Limit)
+
+	if filterTransactions != nil {
+		if filterTransactions.Limit != nil {
+			query += "LIMIT ? "
+			params = append(params, filterTransactions.Limit)
+		}
 
 		if filterTransactions.Offset != nil {
 			query += "OFFSET ?"

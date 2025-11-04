@@ -49,7 +49,7 @@ type CreateFullTransactionGroup struct {
 	DownPayment     float64          `json:"down_payment", db:"down_payment"`
 	OwnFunds        float64          `json:"own_funds", db:"own_funds"`
 	ThirdPartyFunds float64          `json:"third_party_funds", db:"third_party_funds"`
-	InterestRate    float64          `json:"interest_rate", db:"interest_rate"`
+	InterestRate    *float64         `json:"interest_rate", db:"interest_rate"`
 	FrequencyId     int64            `json:"frequency_id", db:"frequency_id"`
 	RepaymentPlanId int64            `json:"repayment_plan_id", db:"repayment_plan_id"`
 	DateStart       utils.CustomTime `json:"date_start", db:"date_start"`
@@ -235,7 +235,12 @@ func (s *TransactionService) RegularExpense(createTransactionGroupSettings *Crea
 	annualInterestRate := createTransactionGroupSettings.InterestRate
 	loanTermMonths := createTransactionGroupSettings.LoanTerm
 
-	monthlyPayment, _ := calculateLoan(principal, annualInterestRate, loanTermMonths)
+	monthlyPayment := principal
+	if createTransactionGroupSettings.InterestRate != nil {
+		monthlyPayment, _ = calculateLoan(principal, annualInterestRate, loanTermMonths)
+	} else {
+		monthlyPayment = principal / float64(loanTermMonths)
+	}
 
 	newTransactionGroupSetting := &models.CreateTransactionGroupSetting{}
 	newTransactionGroupSetting.Name = createTransactionGroupSettings.Name
@@ -302,15 +307,11 @@ func (s *TransactionService) GetPaymentDates(dateStart time.Time, loanTerm int, 
 		}
 	}
 
-	logging.Init()
-	logger := logging.GetLogger()
-	logger.Println(dates)
-
 	return dates
 }
 
-func calculateLoan(principal float64, annualInterestRate float64, loanTermMonths int) (monthlyPayment float64, totalInterest float64) {
-	monthlyInterestRate := annualInterestRate / 100 / 12
+func calculateLoan(principal float64, annualInterestRate *float64, loanTermMonths int) (monthlyPayment float64, totalInterest float64) {
+	monthlyInterestRate := *annualInterestRate / 100 / 12
 
 	// P = S * [r* (1+r)^n] / [(1+r)^n – 1]
 	power := math.Pow(1+monthlyInterestRate, float64(loanTermMonths))
