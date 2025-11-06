@@ -246,9 +246,15 @@ func (h *UserHandler) GetUserTransactions(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	jsonData, err := h.userRepository.GetUserTransactions(userId, nil, filterTransactions)
+	transactions, err := h.userRepository.GetUserTransactions(userId, nil, filterTransactions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(transactions)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -276,9 +282,15 @@ func (h *UserHandler) GetUserEstateTransactions(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	jsonData, err := h.userRepository.GetUserTransactions(userId, &estateId, filterTransactions)
+	transactions, err := h.userRepository.GetUserTransactions(userId, &estateId, filterTransactions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(transactions)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

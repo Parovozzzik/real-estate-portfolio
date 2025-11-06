@@ -207,7 +207,7 @@ func (u *UserRepository) GetUserEstates(userId int64) ([]byte, error) {
 
 	return jsonData, nil
 }
-func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filterTransactions *models.FilterTransactions) ([]byte, error) {
+func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filterTransactions *models.FilterTransactions) (*models.PaginatedResponse, error) {
 	params := []any{}
 	params = append(params, userId)
 	query :=
@@ -263,6 +263,13 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 
 	query += "ORDER BY rt.date "
 
+	var rowsCount int
+	countQuery := "SELECT COUNT(*) FROM (" + query + ") count"
+	err := u.db.QueryRow(countQuery, params...).Scan(&rowsCount)
+	if err != nil {
+		log.Println(err)
+	}
+
 	if filterTransactions != nil {
 		if filterTransactions.Limit != nil {
 			query += "LIMIT ? "
@@ -315,12 +322,25 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 		}
 		tableData = append(tableData, entry)
 	}
-	jsonData, err := json.Marshal(tableData)
-	if err != nil {
-		fmt.Println("Error...")
+
+	var offset int64
+	if filterTransactions.Offset != nil {
+		offset = *filterTransactions.Offset
+	}
+	var limit int
+	if filterTransactions.Limit != nil {
+		limit = *filterTransactions.Limit
 	}
 
-	return jsonData, nil
+	response := &models.PaginatedResponse{
+		Data:       tableData,
+		TotalItems: int64(rowsCount),
+		Page:       offset/int64(limit) + 1,
+		PageSize:   limit,
+		TotalPages: int64(rowsCount) / int64(limit),
+	}
+
+	return response, nil
 }
 
 func (u *UserRepository) GetUserEstate(userId, estateId int64) (*models.FullEstate, error) {

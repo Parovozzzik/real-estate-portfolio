@@ -57,3 +57,11 @@ type FilterTransactions struct {
 	StartDate                 *string `json:"start_date"`
 	EndDate                   *string `json:"end_date"`
 }
+
+type PaginatedResponse struct {
+	Data       interface{} `json:"data"`
+	TotalItems int64       `json:"total_items"`
+	Page       int64       `json:"page"`
+	PageSize   int         `json:"page_size"`
+	TotalPages int64       `json:"total_pages"`
+}
