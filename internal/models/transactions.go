@@ -53,15 +53,17 @@ type FilterTransactions struct {
 	TransactionTypeDirection  *bool   `json:"transaction_type_direction"`
 	TransactionTypeRegularity *bool   `json:"transaction_type_regularity"`
 	Limit                     *int    `json:"limit"`
-	Offset                    *int64  `json:"offset"`
+	Page                      *int64  `json:"page"`
 	StartDate                 *string `json:"start_date"`
 	EndDate                   *string `json:"end_date"`
+	SortBy                    *string `json:"sort_by"`
+	SortOrder                 *string `json:"sort_order"`
 }
 
 type PaginatedResponse struct {
 	Data       interface{} `json:"data"`
 	TotalItems int64       `json:"total_items"`
 	Page       int64       `json:"page"`
-	PageSize   int         `json:"page_size"`
+	Limit      int         `json:"limit"`
 	TotalPages int64       `json:"total_pages"`
 }

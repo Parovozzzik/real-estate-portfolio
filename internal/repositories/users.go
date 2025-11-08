@@ -239,10 +239,6 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 			query += "AND rt.group_id = ? "
 			params = append(params, filterTransactions.TransactionGroupId)
 		}
-		if filterTransactions.TransactionGroupId != nil {
-			query += "AND rt.group_id = ? "
-			params = append(params, filterTransactions.TransactionGroupId)
-		}
 		if filterTransactions.TransactionTypeDirection != nil {
 			query += "AND rtt.direction = ? "
 			params = append(params, filterTransactions.TransactionTypeDirection)
@@ -259,41 +255,60 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 			query += "AND rt.date <= ? "
 			params = append(params, filterTransactions.EndDate)
 		}
-	}
 
-	query += "ORDER BY rt.date "
+		sortBy := "rt.date"
+		sortOrder := "ASC"
+		if filterTransactions.SortBy != nil {
+			switch *filterTransactions.SortBy {
+			case "sum":
+				sortBy = "rt.sum"
+			case "transaction_type_name":
+				sortBy = "rtt.name"
+			}
+
+			if filterTransactions.SortOrder != nil {
+				switch *filterTransactions.SortOrder {
+				case "DESC":
+					sortOrder = "DESC"
+				}
+			}
+		}
+		query += "ORDER BY " + sortBy + " " + sortOrder + " "
+	}
 
 	var rowsCount int
 	countQuery := "SELECT COUNT(*) FROM (" + query + ") count"
 	err := u.db.QueryRow(countQuery, params...).Scan(&rowsCount)
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 	}
 
+	query += "LIMIT ? OFFSET ? "
+	var limit int = 10
+	var page int64 = 1
+	var offset int64 = 0
 	if filterTransactions != nil {
 		if filterTransactions.Limit != nil {
-			query += "LIMIT ? "
-			params = append(params, filterTransactions.Limit)
-		}
+			limit = *filterTransactions.Limit
 
-		if filterTransactions.Offset != nil {
-			query += "OFFSET ?"
-			params = append(params, filterTransactions.Offset)
+			if filterTransactions.Page != nil {
+				page = *filterTransactions.Page
+				offset = page * int64(limit)
+			}
 		}
 	}
+	params = append(params, limit)
+	params = append(params, offset)
 
 	rows, err := u.db.Query(query, params...)
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 	}
 	defer rows.Close()
 
-	if err != nil {
-		fmt.Println("Error...")
-	}
 	columns, err := rows.Columns()
 	if err != nil {
-		fmt.Println("Error...")
+		log.Println(err.Error())
 	}
 	count := len(columns)
 	tableData := make([]map[string]interface{}, 0)
@@ -323,20 +338,11 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 		tableData = append(tableData, entry)
 	}
 
-	var offset int64
-	if filterTransactions.Offset != nil {
-		offset = *filterTransactions.Offset
-	}
-	var limit int
-	if filterTransactions.Limit != nil {
-		limit = *filterTransactions.Limit
-	}
-
 	response := &models.PaginatedResponse{
 		Data:       tableData,
 		TotalItems: int64(rowsCount),
-		Page:       offset/int64(limit) + 1,
-		PageSize:   limit,
+		Page:       page,
+		Limit:      limit,
 		TotalPages: int64(rowsCount) / int64(limit),
 	}
 
@@ -366,4 +372,106 @@ func (u *UserRepository) GetUserEstate(userId, estateId int64) (*models.FullEsta
 	estate.Recoupment = rand.Intn(101)
 
 	return estate, nil
+}
+
+func (u *UserRepository) GetUserEstateValues(userId, estateId int64, filterEstateValues *models.FilterEstateValues) (*models.PaginatedResponse, error) {
+	params := []any{}
+	params = append(params, userId)
+	params = append(params, estateId)
+
+	query :=
+		"SELECT re.id, rev.date, rev.income, rev.expense, rev.profit, rev.cumulative_income, " +
+			"rev.cumulative_expense, rev.cumulative_profit, rev.roi " +
+			"FROM real_estate_portfolio.rep_estate_values rev " +
+			"JOIN real_estate_portfolio.rep_estates re ON re.id = rev.estate_id " +
+			"WHERE re.user_id = ? AND re.id = ? "
+
+	if filterEstateValues != nil {
+		if filterEstateValues.StartDate != nil {
+			query += "AND rev.date >= ? "
+			params = append(params, filterEstateValues.StartDate)
+		}
+		if filterEstateValues.EndDate != nil {
+			query += "AND rev.date <= ? "
+			params = append(params, filterEstateValues.EndDate)
+		}
+
+		sortBy := "rev.date"
+		sortOrder := "ASC"
+		if filterEstateValues.SortBy != nil && filterEstateValues.SortOrder != nil {
+			switch *filterEstateValues.SortOrder {
+			case "DESC":
+				sortOrder = "DESC"
+			}
+		}
+		query += "ORDER BY " + sortBy + " " + sortOrder + " "
+	}
+
+	var rowsCount int
+	countQuery := "SELECT COUNT(*) FROM (" + query + ") count"
+	err := u.db.QueryRow(countQuery, params...).Scan(&rowsCount)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	query += "LIMIT ? OFFSET ? "
+	var limit int = 120
+	var page int64 = 1
+	var offset int64 = 0
+	if filterEstateValues != nil {
+		if filterEstateValues.Limit != nil {
+			limit = *filterEstateValues.Limit
+
+			if filterEstateValues.Page != nil {
+				page = *filterEstateValues.Page
+				offset = page * int64(limit)
+			}
+		}
+	}
+	params = append(params, limit)
+	params = append(params, offset)
+
+	rows, err := u.db.Query(query, params...)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	defer rows.Close()
+
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	count := len(columns)
+	tableData := make([]map[string]interface{}, 0)
+	values := make([]interface{}, count)
+	valuePtrs := make([]interface{}, count)
+	for rows.Next() {
+		for i := 0; i < count; i++ {
+			valuePtrs[i] = &values[i]
+		}
+		rows.Scan(valuePtrs...)
+		entry := make(map[string]interface{})
+		for i, col := range columns {
+			var v interface{}
+			val := values[i]
+			b, ok := val.([]byte)
+			if ok {
+				v = string(b)
+			} else {
+				v = val
+			}
+			entry[col] = v
+		}
+		tableData = append(tableData, entry)
+	}
+
+	response := &models.PaginatedResponse{
+		Data:       tableData,
+		TotalItems: int64(rowsCount),
+		Page:       page,
+		Limit:      limit,
+		TotalPages: int64(rowsCount) / int64(limit),
+	}
+
+	return response, nil
 }

@@ -226,6 +226,7 @@ func (h *UserHandler) GetUserEstates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
 
@@ -258,6 +259,7 @@ func (h *UserHandler) GetUserTransactions(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
 
@@ -280,6 +282,11 @@ func (h *UserHandler) GetUserEstateTransactions(w http.ResponseWriter, r *http.R
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		err = h.validateFilterTransactions(filterTransactions)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	transactions, err := h.userRepository.GetUserTransactions(userId, &estateId, filterTransactions)
@@ -294,7 +301,28 @@ func (h *UserHandler) GetUserEstateTransactions(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
+}
+
+func (h *UserHandler) validateFilterTransactions(filterTransactions *models.FilterTransactions) error {
+	if filterTransactions.EstateTypeId != nil {
+
+	}
+	if filterTransactions.TransactionTypeId != nil {
+
+	}
+	if filterTransactions.TransactionGroupId != nil {
+
+	}
+	if filterTransactions.StartDate != nil {
+
+	}
+	if filterTransactions.EndDate != nil {
+
+	}
+
+	return nil
 }
 
 func (h *UserHandler) GetUserEstate(w http.ResponseWriter, r *http.Request) {
@@ -529,4 +557,60 @@ func updateRefreshToken(oldToken, newToken string, expiresAt int64) error {
 	userRefreshTokenRepository := repositories.NewUserRefreshTokenRepository(db)
 
 	return userRefreshTokenRepository.UpdateUserRefreshToken(oldToken, newToken, expiresAt)
+}
+
+func (h *UserHandler) GetUserEstateValues(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userId, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	estateId, err := strconv.ParseInt(chi.URLParam(r, "estate-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	filterEstateValues := &models.FilterEstateValues{}
+	if r.Body != http.NoBody {
+		err = json.NewDecoder(r.Body).Decode(&filterEstateValues)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = h.validateFilterEstateValues(filterEstateValues)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	estateValues, err := h.userRepository.GetUserEstateValues(userId, estateId, filterEstateValues)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonData, err := json.Marshal(estateValues)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
+func (h *UserHandler) validateFilterEstateValues(filterEstateValues *models.FilterEstateValues) error {
+	if filterEstateValues.EstateId != nil {
+
+	}
+	if filterEstateValues.StartDate != nil {
+
+	}
+	if filterEstateValues.EndDate != nil {
+
+	}
+
+	return nil
 }
