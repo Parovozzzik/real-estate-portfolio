@@ -489,7 +489,7 @@ func (u *UserRepository) GetUserEstateValues(userId, estateId int64, filterEstat
 		Data:       tableData,
 		TotalItems: int64(rowsCount),
 		Page:       page,
-		Limit:      limit,
+		Limit:      len(tableData),
 		TotalPages: int64(rowsCount) / int64(limit),
 	}
 
