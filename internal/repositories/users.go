@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
@@ -424,15 +425,27 @@ func (u *UserRepository) GetUserEstateValues(userId, estateId int64, filterEstat
 	if filterEstateValues != nil {
 		if filterEstateValues.Limit != nil {
 			limit = *filterEstateValues.Limit
-
-			if filterEstateValues.Page != nil {
-				page = *filterEstateValues.Page
-				offset = page * int64(limit)
-				if page < 1 {
-					page = 1
-				}
-				offset = (page - 1) * int64(limit)
+		} else if filterEstateValues.DateStart != nil && filterEstateValues.DateEnd != nil {
+			dateStart, err := time.Parse("2006-01-02", *filterEstateValues.DateStart)
+			if err != nil {
+				log.Println(err.Error())
 			}
+
+			dateEnd, err := time.Parse("2006-01-02", *filterEstateValues.DateEnd)
+			if err != nil {
+				log.Println(err.Error())
+			}
+
+			limit = diffMonths(dateEnd, dateStart)
+		}
+
+		if filterEstateValues.Page != nil {
+			page = *filterEstateValues.Page
+			offset = page * int64(limit)
+			if page < 1 {
+				page = 1
+			}
+			offset = (page - 1) * int64(limit)
 		}
 	}
 	params = append(params, limit)
@@ -481,4 +494,19 @@ func (u *UserRepository) GetUserEstateValues(userId, estateId int64, filterEstat
 	}
 
 	return response, nil
+}
+
+func diffMonths(t1, t2 time.Time) int {
+	if t1.After(t2) {
+		t1, t2 = t2, t1
+	}
+
+	year1, month1, _ := t1.Date()
+	year2, month2, _ := t2.Date()
+
+	months := 0
+	months += int(month2) - int(month1)
+	months += (year2 - year1) * 12
+
+	return months
 }
