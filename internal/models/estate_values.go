@@ -64,8 +64,8 @@ type FilterEstateValues struct {
 	EstateId  *int64  `json:"estate_id"`
 	Limit     *int    `json:"limit"`
 	Page      *int64  `json:"page"`
-	StartDate *string `json:"start_date"`
-	EndDate   *string `json:"end_date"`
+	DateStart *string `json:"date_start"`
+	DateEnd   *string `json:"date_end"`
 	SortBy    *string `json:"sort_by"`
 	SortOrder *string `json:"sort_order"`
 }

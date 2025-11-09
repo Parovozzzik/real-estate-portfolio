@@ -315,10 +315,10 @@ func (h *UserHandler) validateFilterTransactions(filterTransactions *models.Filt
 	if filterTransactions.TransactionGroupId != nil {
 
 	}
-	if filterTransactions.StartDate != nil {
+	if filterTransactions.DateStart != nil {
 
 	}
-	if filterTransactions.EndDate != nil {
+	if filterTransactions.DateEnd != nil {
 
 	}
 
@@ -605,10 +605,10 @@ func (h *UserHandler) validateFilterEstateValues(filterEstateValues *models.Filt
 	if filterEstateValues.EstateId != nil {
 
 	}
-	if filterEstateValues.StartDate != nil {
+	if filterEstateValues.DateStart != nil {
 
 	}
-	if filterEstateValues.EndDate != nil {
+	if filterEstateValues.DateEnd != nil {
 
 	}
 

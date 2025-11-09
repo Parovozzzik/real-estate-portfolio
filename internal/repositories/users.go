@@ -247,13 +247,13 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 			query += "AND rtt.regularity = ? "
 			params = append(params, filterTransactions.TransactionTypeRegularity)
 		}
-		if filterTransactions.StartDate != nil {
+		if filterTransactions.DateStart != nil {
 			query += "AND rt.date >= ? "
-			params = append(params, filterTransactions.StartDate)
+			params = append(params, filterTransactions.DateStart)
 		}
-		if filterTransactions.EndDate != nil {
+		if filterTransactions.DateEnd != nil {
 			query += "AND rt.date <= ? "
-			params = append(params, filterTransactions.EndDate)
+			params = append(params, filterTransactions.DateEnd)
 		}
 
 		sortBy := "rt.date"
@@ -387,13 +387,13 @@ func (u *UserRepository) GetUserEstateValues(userId, estateId int64, filterEstat
 			"WHERE re.user_id = ? AND re.id = ? "
 
 	if filterEstateValues != nil {
-		if filterEstateValues.StartDate != nil {
+		if filterEstateValues.DateStart != nil {
 			query += "AND rev.date >= ? "
-			params = append(params, filterEstateValues.StartDate)
+			params = append(params, filterEstateValues.DateStart)
 		}
-		if filterEstateValues.EndDate != nil {
+		if filterEstateValues.DateEnd != nil {
 			query += "AND rev.date <= ? "
-			params = append(params, filterEstateValues.EndDate)
+			params = append(params, filterEstateValues.DateEnd)
 		}
 
 		sortBy := "rev.date"

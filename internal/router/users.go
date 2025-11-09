@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/Parovozzzik/real-estate-portfolio/internal/services"
 	"net/http"
 
 	chi "github.com/go-chi/chi/v5"
@@ -14,6 +15,11 @@ func usersRouter() http.Handler {
 	db := database.GetDBInstance()
 	userRepository := repositories.NewUserRepository(db)
 	userHandler := handlers.NewUserHandler(userRepository)
+
+	estateValueRepository := repositories.NewEstateValueRepository(db)
+	transactionRepository := repositories.NewTransactionRepository(db)
+
+	estateValuesService := services.NewEstateValuesService(estateValueRepository, transactionRepository)
 
 	r := chi.NewRouter()
 	r.Get("/", userHandler.GetUsers)
@@ -30,7 +36,8 @@ func usersRouter() http.Handler {
 		r.Get("/{user-id}/estates", userHandler.GetUserEstates)
 		r.Get("/{user-id}/transactions", userHandler.GetUserTransactions)
 		r.Get("/{user-id}/estates/{estate-id}", userHandler.GetUserEstate)
-		r.Get("/{user-id}/estates/{estate-id}/values", userHandler.GetUserEstateValues)
+		r.Post("/{user-id}/estates/{estate-id}/values/filter", userHandler.GetUserEstateValues)
+		r.Post("/{user-id}/estates/{estate-id}/values/recalculate", estateValuesService.Recalculate)
 		r.Post("/{user-id}/estates", userHandler.CreateEstate)
 		r.Put("/{user-id}/estates/{estate-id}", userHandler.UpdateEstate)
 		r.Post("/{user-id}/estates/{estate-id}/transactions/filter", userHandler.GetUserEstateTransactions)

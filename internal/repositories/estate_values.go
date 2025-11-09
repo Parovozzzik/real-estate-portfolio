@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
@@ -104,4 +105,45 @@ func (u *EstateValueRepository) UpdateEstateValue(updateEstateValue *models.Upda
 	}
 
 	return updateEstateValue.Id, nil
+}
+
+func (u *EstateValueRepository) Upsert(transactions *[]map[string]interface{}) (int64, error) {
+	query := "INSERT IGNORE INTO real_estate_portfolio.rep_estate_values " +
+		"(estate_id, date, income, expense, profit, " +
+		"cumulative_income, cumulative_expense, cumulative_profit, roi) " +
+		"VALUES "
+
+	params := []any{}
+	for _, transaction := range *transactions {
+		query += "(?, ?, ?, ?, ?, ?, ?, ?, ?), "
+
+		date := fmt.Sprintf("%d-%02d-15",
+			transaction["year"].(int64),
+			transaction["month"].(int64))
+
+		params = append(params,
+			transaction["estate_id"],
+			date,
+			transaction["income"],
+			transaction["expense"],
+			transaction["profit"],
+			transaction["cumulative_income"],
+			transaction["cumulative_expense"],
+			transaction["cumulative_profit"],
+			transaction["roi"])
+	}
+	query = strings.Trim(query, ", ")
+	query += "ON DUPLICATE KEY UPDATE " +
+		"estate_id = VALUES(estate_id), " +
+		"date = VALUES(date), " +
+		"income = VALUES(income), " +
+		"expense = VALUES(expense), " +
+		"profit = VALUES(profit), " +
+		"cumulative_income = VALUES(cumulative_income), " +
+		"cumulative_expense = VALUES(cumulative_expense), " +
+		"cumulative_profit = VALUES(cumulative_profit), " +
+		"roi = VALUES(roi)"
+	_, err := u.db.Exec(query, params...)
+
+	return 0, err
 }
