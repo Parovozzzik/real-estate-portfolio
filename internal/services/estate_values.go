@@ -3,7 +3,6 @@ package services
 import (
 	"encoding/json"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
-	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 	"net/http"
 )
 
@@ -29,33 +28,34 @@ type RecalculateEstateValues struct {
 
 func (s *EstateValuesService) Recalculate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	logging.Init()
-	logger := logging.GetLogger()
 	recalculateEstateValues := &RecalculateEstateValues{}
 	err := json.NewDecoder(r.Body).Decode(recalculateEstateValues)
 	if err != nil {
-		logger.Println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	err = s.RecalculateEstateValues(*recalculateEstateValues)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *EstateValuesService) RecalculateEstateValues(recalculateEstateValues RecalculateEstateValues) error {
 	transactions, err := s.transactionRepository.GetTransactionByEstateIdForValues(
 		recalculateEstateValues.EstateId,
 		recalculateEstateValues.DateStart)
-
 	if err != nil {
-		logger.Println(err.Error())
-
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return err
 	}
 
 	_, err = s.estateValueRepository.Upsert(&transactions)
 	if err != nil {
-		logger.Println(err.Error())
-
-		w.WriteHeader(http.StatusBadRequest)
+		return err
 	}
 
-	w.WriteHeader(http.StatusOK)
+	return nil
 }

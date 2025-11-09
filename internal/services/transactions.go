@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"github.com/Parovozzzik/real-estate-portfolio/internal/database"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/utils"
@@ -105,6 +106,20 @@ func (s *TransactionService) CreateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	jsonData, err := json.Marshal(result)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	db := database.GetDBInstance()
+	estateValueRepository := repositories.NewEstateValueRepository(db)
+
+	estateValuesService := NewEstateValuesService(estateValueRepository, s.transactionRepository)
+	recalculateEstateValues := &RecalculateEstateValues{
+		EstateId: createTransactionGroupSettings.EstateId,
+	}
+	err = estateValuesService.RecalculateEstateValues(*recalculateEstateValues)
 	if err != nil {
 		logger.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
