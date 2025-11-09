@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Parovozzzik/real-estate-portfolio/internal/database"
-	"github.com/Parovozzzik/real-estate-portfolio/internal/logging"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/router"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 )
 
 func main() {

@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Parovozzzik/real-estate-portfolio/internal/logging"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 )
 
 type TransactionHandler struct {

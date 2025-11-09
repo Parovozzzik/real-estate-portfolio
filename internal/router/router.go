@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/Parovozzzik/real-estate-portfolio/internal/config"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/config"
 )
 
 var validAPIKeys = map[string]bool{

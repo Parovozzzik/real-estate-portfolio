@@ -69,3 +69,13 @@ type FilterEstateValues struct {
 	SortBy    *string `json:"sort_by"`
 	SortOrder *string `json:"sort_order"`
 }
+
+type SeriaChartDataEstateValues struct {
+	Name string    `json:"name"`
+	Data []float64 `json:"data"`
+}
+
+type ChartDataEstateValues struct {
+	Categories []string                     `json:"categories"`
+	Series     []SeriaChartDataEstateValues `json:"series"`
+}

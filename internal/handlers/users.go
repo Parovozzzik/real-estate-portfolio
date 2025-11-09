@@ -12,10 +12,10 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
-	"github.com/Parovozzzik/real-estate-portfolio/internal/config"
-	"github.com/Parovozzzik/real-estate-portfolio/internal/logging"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/config"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 )
 
 type UserHandler struct {
@@ -591,7 +591,90 @@ func (h *UserHandler) GetUserEstateValues(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	jsonData, err := json.Marshal(estateValues)
+	chartDataEstateValues := models.ChartDataEstateValues{}
+	categories := make([]string, estateValues.Limit)
+	seriesChartDataEstateValues := make([]models.SeriaChartDataEstateValues, 7)
+
+	dataIncome := make([]float64, estateValues.Limit)
+	dataExpense := make([]float64, estateValues.Limit)
+	dataProfit := make([]float64, estateValues.Limit)
+	dataCumulativeIncome := make([]float64, estateValues.Limit)
+	dataCumulativeExpense := make([]float64, estateValues.Limit)
+	dataCumulativeProfit := make([]float64, estateValues.Limit)
+	dataRoi := make([]float64, estateValues.Limit)
+
+	for key, value := range estateValues.Data {
+		layout := "2006-01-02"
+		t, err := time.Parse(layout, value["date"].(string))
+		if err != nil {
+			fmt.Println("Error parsing time:", err)
+			return
+		}
+		categories[key] = t.Month().String() + " " + strconv.Itoa(t.Year())
+
+		income, _ := strconv.ParseFloat(value["income"].(string), 64)
+		dataIncome[key] = income
+
+		expense, _ := strconv.ParseFloat(value["expense"].(string), 64)
+		dataExpense[key] = expense
+
+		profit, _ := strconv.ParseFloat(value["profit"].(string), 64)
+		dataProfit[key] = profit
+
+		cumulativeIncome, _ := strconv.ParseFloat(value["cumulative_income"].(string), 64)
+		dataCumulativeIncome[key] = cumulativeIncome
+
+		cumulativeExpense, _ := strconv.ParseFloat(value["cumulative_expense"].(string), 64)
+		dataCumulativeExpense[key] = cumulativeExpense
+
+		cumulativeProfit, _ := strconv.ParseFloat(value["cumulative_profit"].(string), 64)
+		dataCumulativeProfit[key] = cumulativeProfit
+
+		roi, _ := strconv.ParseFloat(value["roi"].(string), 64)
+		dataRoi[key] = roi
+	}
+
+	incomeSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "Income",
+		Data: dataIncome,
+	}
+	expenseSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "Expense",
+		Data: dataExpense,
+	}
+	profitSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "Profit",
+		Data: dataProfit,
+	}
+	cumulativeIncomeSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "CumulativeIncome",
+		Data: dataCumulativeIncome,
+	}
+	cumulativeExpenseSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "CumulativeExpense",
+		Data: dataCumulativeExpense,
+	}
+	cumulativeProfitSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "CumulativeProfit",
+		Data: dataCumulativeProfit,
+	}
+	roiSeriaChartDataEstateValues := models.SeriaChartDataEstateValues{
+		Name: "Roi",
+		Data: dataRoi,
+	}
+
+	seriesChartDataEstateValues[0] = incomeSeriaChartDataEstateValues
+	seriesChartDataEstateValues[1] = expenseSeriaChartDataEstateValues
+	seriesChartDataEstateValues[2] = profitSeriaChartDataEstateValues
+	seriesChartDataEstateValues[3] = cumulativeIncomeSeriaChartDataEstateValues
+	seriesChartDataEstateValues[4] = cumulativeExpenseSeriaChartDataEstateValues
+	seriesChartDataEstateValues[5] = cumulativeProfitSeriaChartDataEstateValues
+	seriesChartDataEstateValues[6] = roiSeriaChartDataEstateValues
+
+	chartDataEstateValues.Categories = categories
+	chartDataEstateValues.Series = seriesChartDataEstateValues
+
+	jsonData, err := json.Marshal(chartDataEstateValues)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -61,9 +61,9 @@ type FilterTransactions struct {
 }
 
 type PaginatedResponse struct {
-	Data       interface{} `json:"data"`
-	TotalItems int64       `json:"total_items"`
-	Page       int64       `json:"page"`
-	Limit      int         `json:"limit"`
-	TotalPages int64       `json:"total_pages"`
+	Data       []map[string]interface{} `json:"data"`
+	TotalItems int64                    `json:"total_items"`
+	Page       int64                    `json:"page"`
+	Limit      int                      `json:"limit"`
+	TotalPages int64                    `json:"total_pages"`
 }

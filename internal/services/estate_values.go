@@ -2,8 +2,8 @@ package services
 
 import (
 	"encoding/json"
-	"github.com/Parovozzzik/real-estate-portfolio/internal/logging"
 	"github.com/Parovozzzik/real-estate-portfolio/internal/repositories"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 	"net/http"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/Parovozzzik/real-estate-portfolio/internal/config"
+	"github.com/Parovozzzik/real-estate-portfolio/pkg/config"
 )
 
 var (
