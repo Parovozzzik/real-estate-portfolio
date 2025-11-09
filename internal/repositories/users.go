@@ -293,7 +293,10 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 
 			if filterTransactions.Page != nil {
 				page = *filterTransactions.Page
-				offset = page * int64(limit)
+				if page < 1 {
+					page = 1
+				}
+				offset = (page - 1) * int64(limit)
 			}
 		}
 	}
@@ -425,6 +428,10 @@ func (u *UserRepository) GetUserEstateValues(userId, estateId int64, filterEstat
 			if filterEstateValues.Page != nil {
 				page = *filterEstateValues.Page
 				offset = page * int64(limit)
+				if page < 1 {
+					page = 1
+				}
+				offset = (page - 1) * int64(limit)
 			}
 		}
 	}
