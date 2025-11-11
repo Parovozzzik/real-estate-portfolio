@@ -314,7 +314,7 @@ func (s *TransactionService) UpdateTransaction(w http.ResponseWriter, r *http.Re
 }
 
 func (s *TransactionService) GetPaymentDates(dateStart time.Time, loanTerm int, frequencyId int64) []time.Time {
-	dates := make([]time.Time, loanTerm)
+	dates := make([]time.Time, loanTerm+1)
 	dates[0] = dateStart
 	if frequencyId == 3 { // month
 		for i := 1; i <= loanTerm; i++ {
