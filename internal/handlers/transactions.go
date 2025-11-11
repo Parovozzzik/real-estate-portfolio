@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Parovozzzik/real-estate-portfolio/internal/database"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -65,7 +66,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	logging.Init()
 	logger := logging.GetLogger()
 
-	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	id, err := strconv.ParseInt(chi.URLParam(r, "transaction-id"), 10, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +88,73 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	transaction, err := h.transactionRepository.GetTransactionById(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+		return
+	}
+
+	jsonData, err := json.Marshal(transaction)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write(jsonData)
+}
+
+func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	logging.Init()
+	logger := logging.GetLogger()
+	id, err := strconv.ParseInt(chi.URLParam(r, "transaction-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	transaction, err := h.transactionRepository.GetTransactionById(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+		return
+	}
+
+	logger.Println(transaction)
+
+	err = h.transactionRepository.Delete(id)
+	if err != nil {
+		logger.Println(err.Error())
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+		return
+	}
+
+	has, err := h.transactionRepository.HasTransactionsByGroupId(transaction.GroupId)
+	logger.Println(has)
+
+	if err != nil {
+		logger.Println(err.Error())
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+		return
+	}
+
+	if has == false {
+		db := database.GetDBInstance()
+		transactionGroupRepository := repositories.NewTransactionGroupRepository(db)
+		err = transactionGroupRepository.DeleteEmptyTransactionGroup(transaction.GroupId)
+		if err != nil {
+			logger.Println(err.Error())
+
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
+			return
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
-	strTransactionId := strconv.FormatInt(id, 10)
-	fmt.Fprintf(w, `{"id": `+strTransactionId+`}`)
 }

@@ -147,3 +147,9 @@ func (u *EstateValueRepository) Upsert(transactions *[]map[string]interface{}) (
 
 	return 0, err
 }
+
+func (u EstateValueRepository) DeleteByEstateId(estateId int64) error {
+	_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_estate_values WHERE estate_id = ?", estateId)
+
+	return err
+}

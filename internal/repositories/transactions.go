@@ -7,6 +7,7 @@ import (
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
 	"log"
+	"strings"
 )
 
 type TransactionRepository struct {
@@ -81,9 +82,6 @@ func (u *TransactionRepository) CreateTransaction(createTransaction *models.Crea
 
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {
-		logging.Init()
-		logger := logging.GetLogger()
-		logger.Println(err.Error())
 		return 0, err
 	}
 
@@ -91,15 +89,101 @@ func (u *TransactionRepository) CreateTransaction(createTransaction *models.Crea
 }
 
 func (u *TransactionRepository) UpdateTransaction(updateTransaction *models.UpdateTransaction) error {
-	_, err := u.db.Exec(
-		"UPDATE real_estate_portfolio.rep_transactions SET group_id = ?, type_id = ?, sum = ?, date = ?, comment = ? WHERE id = ?",
-		updateTransaction.GroupId,
-		updateTransaction.TypeId,
-		updateTransaction.Sum,
-		updateTransaction.Date,
-		updateTransaction.Comment,
-		updateTransaction.Id)
+	params := []any{}
+	query := "UPDATE real_estate_portfolio.rep_transactions SET "
+	if updateTransaction != nil {
+		if updateTransaction.GroupId != nil {
+			query += "group_id = ?, "
+			params = append(params, updateTransaction.GroupId)
+		}
+		if updateTransaction.TypeId != nil {
+			query += "type_id = ?, "
+			params = append(params, updateTransaction.TypeId)
+		}
+		if updateTransaction.Sum != nil {
+			query += "sum = ?, "
+			params = append(params, updateTransaction.Sum)
+		}
+		if updateTransaction.Date != nil {
+			query += "date = ?, "
+			params = append(params, updateTransaction.Date)
+		}
+		if updateTransaction.Comment != nil {
+			query += "comment = ?, "
+			params = append(params, updateTransaction.Comment)
+		}
+	}
+
+	if len(params) > 0 {
+		query = strings.Trim(query, ", ")
+		query += " WHERE id = ?"
+		params = append(params, updateTransaction.Id)
+	}
+
+	_, err := u.db.Exec(query, params...)
+
 	return err
+}
+
+func (u *TransactionRepository) GetTransactionById(id int64) (*models.FullTransaction, error) {
+	transactionData, err := u.db.Query(
+		"SELECT tr.id, tr.sum, tr.date, tr.comment, tr.type_id, trt.name AS type_name, tr.group_id "+
+			"FROM real_estate_portfolio.rep_transactions tr "+
+			"JOIN real_estate_portfolio.rep_transaction_types trt ON trt.id = tr.type_id "+
+			"WHERE tr.id = ?",
+		id)
+	if err != nil {
+		return nil, err
+	}
+	defer transactionData.Close()
+
+	transaction := &models.FullTransaction{}
+	transactionData.Next()
+	err = transactionData.Scan(&transaction.Id, &transaction.Sum, &transaction.Date, &transaction.Comment, &transaction.TypeId, &transaction.TypeName, &transaction.GroupId)
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction, nil
+}
+
+func (u *TransactionRepository) HasTransactionsByGroupId(groupId int64) (bool, error) {
+	var rowsCount int
+	countQuery := "SELECT COUNT(tr.id) " +
+		"FROM real_estate_portfolio.rep_transactions tr " +
+		"JOIN real_estate_portfolio.rep_transaction_groups trg ON trg.id = tr.group_id " +
+		"WHERE trg.id = ?"
+	err := u.db.QueryRow(countQuery, groupId).Scan(&rowsCount)
+	if err != nil {
+		log.Println(err.Error())
+		return false, err
+	}
+
+	return rowsCount > 0, nil
+}
+
+func (u *TransactionRepository) Delete(id int64) error {
+	_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_transactions WHERE id = ?", id)
+
+	return err
+}
+
+func (u TransactionRepository) DeleteByGroupIds(ids []int64) error {
+	placeholders := make([]string, len(ids))
+	for i := range placeholders {
+		placeholders[i] = "?"
+	}
+	inClause := strings.Join(placeholders, ",")
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	if len(args) > 0 {
+		_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_transactions WHERE group_id IN ("+inClause+")", args...)
+		return err
+	}
+
+	return nil
 }
 
 func (u *TransactionRepository) GetTransactionByEstateIdForValues(estateId int64, dateStart string) ([]map[string]interface{}, error) {

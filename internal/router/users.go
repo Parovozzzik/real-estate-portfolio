@@ -40,6 +40,7 @@ func usersRouter() http.Handler {
 		r.Post("/{user-id}/estates/{estate-id}/values/recalculate", estateValuesService.Recalculate)
 		r.Post("/{user-id}/estates", userHandler.CreateEstate)
 		r.Put("/{user-id}/estates/{estate-id}", userHandler.UpdateEstate)
+		r.Delete("/{user-id}/estates/{estate-id}", userHandler.DeleteEstate)
 		r.Post("/{user-id}/estates/{estate-id}/transactions/filter", userHandler.GetUserEstateTransactions)
 	})
 

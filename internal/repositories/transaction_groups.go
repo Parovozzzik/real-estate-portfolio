@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 	"github.com/Parovozzzik/real-estate-portfolio/pkg/logging"
@@ -20,7 +21,7 @@ func NewTransactionGroupRepository(db *sql.DB) *TransactionGroupRepository {
 
 func (u *TransactionGroupRepository) GetTransactionGroups() ([]byte, error) {
 	rows, err := u.db.Query(
-		"SELECT id, name, direction, regularity FROM real_estate_portfolio.rep_transaction_groups")
+		"SELECT id, estate_id, direction, regularity FROM real_estate_portfolio.rep_transaction_groups")
 	if err != nil {
 		log.Println(err)
 	}
@@ -98,4 +99,70 @@ func (u *TransactionGroupRepository) UpdateTransactionGroup(updateTransactionGro
 		updateTransactionGroup.Regularity,
 		updateTransactionGroup.Id)
 	return err
+}
+
+func (u *TransactionGroupRepository) DeleteEmptyTransactionGroup(id int64) error {
+	_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_transaction_groups WHERE id = ?", id)
+
+	return err
+}
+
+func (u *TransactionGroupRepository) GetTransactionGroupsByEstateId(estateId int64) ([]map[string]interface{}, error) {
+	rows, err := u.db.Query(
+		"SELECT id, setting_id FROM real_estate_portfolio.rep_transaction_groups WHERE estate_id = ?", estateId)
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println("Error...")
+	}
+	columns, err := rows.Columns()
+	if err != nil {
+		fmt.Println("Error...")
+	}
+	count := len(columns)
+	tableData := make([]map[string]interface{}, 0)
+	values := make([]interface{}, count)
+	valuePtrs := make([]interface{}, count)
+	for rows.Next() {
+		for i := 0; i < count; i++ {
+			valuePtrs[i] = &values[i]
+		}
+		rows.Scan(valuePtrs...)
+		entry := make(map[string]interface{})
+		for i, col := range columns {
+			var v interface{}
+			val := values[i]
+			b, ok := val.([]byte)
+			if ok {
+				v = string(b)
+			} else {
+				v = val
+			}
+			entry[col] = v
+		}
+		tableData = append(tableData, entry)
+	}
+
+	return tableData, nil
+}
+
+func (u TransactionGroupRepository) DeleteByIds(ids []int64) error {
+	placeholders := make([]string, len(ids))
+	for i := range placeholders {
+		placeholders[i] = "?"
+	}
+	inClause := strings.Join(placeholders, ",")
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	if len(args) > 0 {
+		_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_transaction_groups WHERE id IN ("+inClause+")", args...)
+		return err
+	}
+
+	return nil
 }

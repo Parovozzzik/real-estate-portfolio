@@ -96,3 +96,9 @@ func (u *EstateRepository) UpdateEstate(updateEstate *models.UpdateEstate, userI
 
 	return updateEstate.Id, nil
 }
+
+func (u *EstateRepository) Delete(id int64) error {
+	_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_estates WHERE id = ?", id)
+
+	return err
+}

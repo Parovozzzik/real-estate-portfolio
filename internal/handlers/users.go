@@ -108,7 +108,6 @@ func (h *UserHandler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 
 	registration := &models.Registration{}
 	err := json.NewDecoder(r.Body).Decode(registration)
-
 	if err != nil {
 		logger.Println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -125,7 +124,7 @@ func (h *UserHandler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 	registration.Password = hashedPassword
 	newUserId, err := h.userRepository.CreateUser(registration)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusConflict)
 		fmt.Fprintf(w, `{"message": `+err.Error()+`}`)
 		return
 	}
@@ -399,6 +398,77 @@ func (h *UserHandler) CreateEstate(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
+func (h *UserHandler) DeleteEstate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	logging.Init()
+	logger := logging.GetLogger()
+
+	_, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	estateId, err := strconv.ParseInt(chi.URLParam(r, "estate-id"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	db := database.GetDBInstance()
+	transactionGroupRepository := repositories.NewTransactionGroupRepository(db)
+
+	transactionGroups, err := transactionGroupRepository.GetTransactionGroupsByEstateId(estateId)
+
+	var settingIds []int64
+	var transactionGroupIds []int64
+	for _, transactionGroup := range transactionGroups {
+		settingId, _ := transactionGroup["setting_id"].(int64)
+		settingIds = append(settingIds, settingId)
+		transactionGroupId, _ := transactionGroup["id"].(int64)
+		transactionGroupIds = append(transactionGroupIds, transactionGroupId)
+	}
+
+	transactionRepository := repositories.NewTransactionRepository(db)
+	err = transactionRepository.DeleteByGroupIds(transactionGroupIds)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = transactionGroupRepository.DeleteByIds(transactionGroupIds)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	transactionGroupSettingRepository := repositories.NewTransactionGroupSettingRepository(db)
+	err = transactionGroupSettingRepository.DeleteByIds(settingIds)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	estateValueRepository := repositories.NewEstateValueRepository(db)
+	err = estateValueRepository.DeleteByEstateId(estateId)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	estateRepository := repositories.NewEstateRepository(db)
+	err = estateRepository.Delete(estateId)
+	if err != nil {
+		logger.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *UserHandler) UpdateEstate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -471,9 +541,6 @@ func (h *UserHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	// Получаем пользователя
 	user, err := h.userRepository.GetUserById(userId)
 	if err != nil {
-		logging.Init()
-		logger := logging.GetLogger()
-		logger.Println(err.Error())
 		http.Error(w, `{"error": "User not found"}`, http.StatusUnauthorized)
 		return
 	}

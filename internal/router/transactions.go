@@ -36,6 +36,8 @@ func transactionsRouter() http.Handler {
 	r.Get("/{estate-id}/{group-id}/{type-id}", transactionHandler.GetTransactions)
 	r.Post("/", transactionService.CreateTransaction)
 	r.Put("/", transactionService.UpdateTransaction)
+	r.Put("/{transaction-id}", transactionHandler.UpdateTransaction)
+	r.Delete("/{transaction-id}", transactionHandler.DeleteTransaction)
 
 	return r
 }

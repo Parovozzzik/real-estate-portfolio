@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/Parovozzzik/real-estate-portfolio/internal/models"
 )
@@ -39,4 +40,24 @@ func (u TransactionGroupSettingRepository) CreateTransactionGroupSetting(createT
 	}
 
 	return lastInsertID, nil
+}
+
+func (u TransactionGroupSettingRepository) DeleteByIds(ids []int64) error {
+	placeholders := make([]string, len(ids))
+	for i := range placeholders {
+		placeholders[i] = "?"
+	}
+	inClause := strings.Join(placeholders, ",")
+
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	if len(args) > 0 {
+		_, err := u.db.Exec("DELETE FROM real_estate_portfolio.rep_transaction_group_settings WHERE id IN ("+inClause+")", args...)
+
+		return err
+	}
+
+	return nil
 }

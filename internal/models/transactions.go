@@ -37,12 +37,12 @@ type CreateTransaction struct {
 }
 
 type UpdateTransaction struct {
-	Id      int64     `json:"id", db:"id"`
-	GroupId int64     `json:"group_id", db:"group_id"`
-	TypeId  int64     `json:"type_id", db:"type_id"`
-	Sum     float64   `json:"sum", db:"sum"`
-	Date    time.Time `json:"date", db:"date"`
-	Comment *string   `json:"comment", db:"comment"`
+	Id      int64    `json:"id", db:"id"`
+	GroupId *int64   `json:"group_id", db:"group_id"`
+	TypeId  *int64   `json:"type_id", db:"type_id"`
+	Sum     *float64 `json:"sum", db:"sum"`
+	Date    *string  `json:"date", db:"date"`
+	Comment *string  `json:"comment", db:"comment"`
 }
 
 type FilterTransactions struct {
@@ -66,4 +66,14 @@ type PaginatedResponse struct {
 	Page       int64                    `json:"page"`
 	Limit      int                      `json:"limit"`
 	TotalPages int64                    `json:"total_pages"`
+}
+
+type FullTransaction struct {
+	Id       int64   `json:"id"`
+	GroupId  int64   `json:"group_id"`
+	TypeId   int64   `json:"type_id"`
+	TypeName string  `json:"type_name"`
+	Sum      float64 `json:"sum"`
+	Date     string  `json:"date"`
+	Comment  *string `json:"comment"`
 }

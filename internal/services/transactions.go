@@ -317,7 +317,7 @@ func (s *TransactionService) GetPaymentDates(dateStart time.Time, loanTerm int, 
 	dates := make([]time.Time, loanTerm)
 	dates[0] = dateStart
 	if frequencyId == 3 { // month
-		for i := 1; i < loanTerm; i++ {
+		for i := 1; i <= loanTerm; i++ {
 			dates[i] = dateStart.AddDate(0, i, 0)
 		}
 	}
