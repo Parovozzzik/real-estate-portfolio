@@ -13,6 +13,25 @@ services:
     networks:
       - real-estate-portfolio-network
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: real-estate-portfolio-phpmyadmin
+    environment:
+      - PMA_ARBITRARY=0
+      - UPLOAD_LIMIT=600M
+      - PMA_HOST=${DB_HOST}
+      - PMA_PORT=${DB_PORT}
+    volumes:
+      - /sessions
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    ports:
+      - '${DOCKER_PHPMYADMIN_PORT1}:${DOCKER_PHPMYADMIN_PORT2}'
+    networks:
+      - real-estate-portfolio-network
+
   go:
     container_name: real-estate-portfolio-go
     restart: always
