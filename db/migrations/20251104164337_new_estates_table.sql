@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS real_estate_portfolio.rep_estates
     updated_at     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Date of updating estate',
 
     PRIMARY KEY (id),
-    CONSTRAINT rep_estate_types_estate_type_id_name_uk UNIQUE (estate_type_id, name),
-    CONSTRAINT rep_estate_types_estate_type_id_name_fk FOREIGN KEY (estate_type_id) REFERENCES real_estate_portfolio.rep_estate_types (id),
-    CONSTRAINT rep_estate_types_user_id_name_fk FOREIGN KEY (user_id) REFERENCES real_estate_portfolio.rep_users (id)
+    CONSTRAINT rep_estate_types_estate_type_id_name_user_id_uk UNIQUE (estate_type_id, name, user_id)
+    CONSTRAINT rep_estate_types_estate_type_id_fk FOREIGN KEY (estate_type_id) REFERENCES real_estate_portfolio.rep_estate_types (id),
+    CONSTRAINT rep_estate_types_user_id_fk FOREIGN KEY (user_id) REFERENCES real_estate_portfolio.rep_users (id),
     ) ENGINE = INNODB
     DEFAULT CHARSET = utf8 COMMENT 'Estates';
 -- +goose StatementEnd
