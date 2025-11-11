@@ -342,12 +342,17 @@ func (u *UserRepository) GetUserTransactions(userId int64, estateId *int64, filt
 		tableData = append(tableData, entry)
 	}
 
+    totalPages := int64(rowsCount) / int64(limit)
+    if int64(rowsCount) % int64(limit) != 0 {
+        totalPages += 1
+    }
+
 	response := &models.PaginatedResponse{
 		Data:       tableData,
 		TotalItems: int64(rowsCount),
 		Page:       page,
 		Limit:      limit,
-		TotalPages: int64(rowsCount) / int64(limit),
+		TotalPages: totalPages,
 	}
 
 	return response, nil
